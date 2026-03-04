@@ -9,14 +9,35 @@ export const useAuth = () => {
   return ctx;
 };
 
+const mapearRol = (rolBackend) => {
+  switch (rolBackend?.toUpperCase()) {
+    case 'ADMIN':       return 'admin';
+    case 'ALIADO_NAT':  return 'donante_aliado';
+    case 'ALIADO_JUR':  return 'donante_aliado';
+    case 'ESTUDIANTE':  return 'estudiante';
+    case 'ASPIRANTE':   return 'aspirante';
+    default:            return 'ciudadano';
+  }
+};
+
+const construirNombreDisplay = (data) => {
+  if (data.razonSocial) return data.razonSocial;
+  if (data.nombre)      return data.nombre;
+  return data.email;
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch {
+        localStorage.clear();
+      }
     }
     setLoading(false);
   }, []);
@@ -25,15 +46,24 @@ export const AuthProvider = ({ children }) => {
     try {
       const data = await loginService(email, password);
       const userData = {
-        id: data.id,
-        nombre: data.nombre,
-        apellido: data.apellido,
-        email: data.email,
-        role: data.rol.toLowerCase(), 
-        token: data.token
+        id:     data.userId,
+        email:  data.email,
+        rol:    data.rol,
+        role:   mapearRol(data.rol),
+        activo: data.activo,
+        token:  data.token,
+        profile: {
+          nombreDisplay: construirNombreDisplay(data),
+          nombre:        data.nombre      ?? null,
+          razonSocial:   data.razonSocial ?? null,
+          nit:           data.nit         ?? null,
+          email:         data.email,
+          telefono:      null,
+          direccion:     null,
+        },
       };
       setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('user',  JSON.stringify(userData));
       localStorage.setItem('token', data.token);
       return { success: true, message: 'Bienvenido', role: userData.role };
     } catch (error) {
@@ -41,31 +71,12 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const register = useCallback(async (formData) => {
+  const register = useCallback(async (formData, tipoAliado) => {
     try {
-      let rolParaBackend = "ALIADO_NAT"; 
-      
-      if (formData.rol === 'donante_aliado') {
-        rolParaBackend = "ALIADO_NAT"; 
-      } else if (formData.rol === 'admin') {
-        rolParaBackend = "ADMIN";
-      }
-
-      const payload = {
-        nombre: formData.nombre,
-        apellido: formData.apellido,
-        email: formData.email,
-        password: formData.password,
-        rol: rolParaBackend 
-      };
-
-      await registerService(payload);
+      await registerService(formData, tipoAliado);
       return { success: true, message: '¡Registro exitoso!' };
     } catch (error) {
-      const msg = error.message.includes("RolEnum") 
-        ? "El tipo de usuario no es válido para el servidor." 
-        : error.message;
-      return { success: false, message: msg };
+      return { success: false, message: error.message };
     }
   }, []);
 
@@ -82,7 +93,7 @@ export const AuthProvider = ({ children }) => {
       loading,
       login,
       logout,
-      register
+      register,
     }}>
       {children}
     </AuthContext.Provider>

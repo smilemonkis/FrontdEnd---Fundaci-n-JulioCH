@@ -1,9 +1,8 @@
 // src/pages/aliado/AliadoProyectos.jsx
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
-import { FolderKanban, Calendar, ImageIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { FolderKanban, Users, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const AliadoProyectos = () => {
   const [proyectos, setProyectos] = useState([]);
@@ -13,10 +12,10 @@ const AliadoProyectos = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Usamos el endpoint de proyectos activos
-        // ProyectoResponse: { id, codigo, nombre, descripcion, fechaInicio, fechaFin, activo, createdAt, updatedAt }
         const res = await api.get('/proyectos/activos');
-        setProyectos(res.data || []);
+        const data = res.data;
+        // Soporta Page<T> y array directo
+        setProyectos(Array.isArray(data) ? data : data.content || []);
       } catch (error) {
         console.error('Error cargando proyectos:', error);
       } finally {
@@ -30,7 +29,7 @@ const AliadoProyectos = () => {
     <div className="space-y-6">
       <div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">Proyectos</h1>
-        <p className="font-body text-muted-foreground">Proyectos activos de la fundación</p>
+        <p className="font-body text-muted-foreground">Proyectos activos de la fundaciÃ³n</p>
       </div>
 
       {loading ? (
@@ -43,31 +42,84 @@ const AliadoProyectos = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {proyectos.map(p => (
-            <div key={p.id} className="bg-card rounded-xl border border-border overflow-hidden group hover:shadow-lg transition-shadow">
-              {/* Placeholder imagen — pendiente endpoint de imágenes */}
-              <div className="aspect-video bg-muted flex items-center justify-center">
-                <ImageIcon className="w-12 h-12 text-muted-foreground/20" />
-              </div>
-              <div className="p-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-body text-muted-foreground bg-muted px-2 py-0.5 rounded">{p.codigo}</span>
-                  <span className="px-2 py-0.5 text-xs rounded-full font-medium bg-primary/90 text-primary-foreground ml-auto">Activo</span>
-                </div>
-                <h3 className="font-heading font-semibold text-foreground line-clamp-2">{p.nombre}</h3>
-                {p.descripcion && (
-                  <p className="font-body text-sm text-muted-foreground line-clamp-3">{p.descripcion}</p>
+            <article key={p.id} className="bg-card rounded-xl overflow-hidden card-hover border border-border group">
+
+              {/* Imagen */}
+              <div className="h-48 overflow-hidden bg-muted">
+                {p.imagenUrl ? (
+                  <img
+                    src={p.imagenUrl}
+                    alt={p.nombre}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-primary/5">
+                    <FolderKanban className="w-12 h-12 text-primary/20" />
+                  </div>
                 )}
-                <div className="flex items-center gap-1 text-xs text-muted-foreground font-body pt-1">
-                  <Calendar className="w-3 h-3" />
-                  {p.fechaInicio && (
-                    <span>Desde {format(new Date(p.fechaInicio), "MMM yyyy", { locale: es })}</span>
-                  )}
-                  {p.fechaFin && (
-                    <span> — {format(new Date(p.fechaFin), "MMM yyyy", { locale: es })}</span>
-                  )}
-                </div>
               </div>
-            </div>
+
+              <div className="p-5">
+                {/* CÃ³digo + badge */}
+                <div className="flex items-center gap-2 mb-2">
+                  {p.codigo && (
+                    <span className="text-xs font-body text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                      {p.codigo}
+                    </span>
+                  )}
+                  <span className="inline-block px-2 py-0.5 text-xs font-body font-medium rounded-full bg-primary/10 text-primary ml-auto">
+                    Activo
+                  </span>
+                </div>
+
+                {/* TÃ­tulo */}
+                <h3 className="font-heading text-lg font-semibold text-foreground mb-2 line-clamp-2">
+                  {p.nombre}
+                </h3>
+
+                {/* DescripciÃ³n */}
+                {p.descripcion && (
+                  <p className="font-body text-sm text-muted-foreground mb-4 line-clamp-3">
+                    {p.descripcion}
+                  </p>
+                )}
+
+                {/* MÃ©tricas */}
+                {(p.beneficiarios || p.progreso !== undefined) && (
+                  <div className="flex items-center gap-4 mb-4 p-3 rounded-lg bg-muted/60">
+                    {p.beneficiarios && (
+                      <div className="flex items-center gap-1.5 text-sm font-body">
+                        <Users className="w-4 h-4 text-primary" />
+                        <span className="font-semibold text-foreground">
+                          {Number(p.beneficiarios).toLocaleString()}
+                        </span>
+                        <span className="text-muted-foreground text-xs">beneficiarios</span>
+                      </div>
+                    )}
+                    {p.progreso !== undefined && p.progreso !== null && (
+                      <div className="flex items-center gap-1.5 text-sm font-body">
+                        <TrendingUp className="w-4 h-4 text-secondary" />
+                        <span className="font-semibold text-foreground">{p.progreso}%</span>
+                        <span className="text-muted-foreground text-xs">avance</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Barra de progreso */}
+                {p.progreso !== undefined && p.progreso !== null && (
+                  <div className="w-full bg-muted rounded-full h-2 mb-4">
+                    <div
+                      className="gradient-primary h-2 rounded-full transition-all"
+                      style={{ width: `${p.progreso}%` }}
+                    />
+                  </div>
+                )}
+
+                <Button variant="outline-primary" size="sm">Ver proyecto</Button>
+              </div>
+            </article>
           ))}
         </div>
       )}

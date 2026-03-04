@@ -24,19 +24,14 @@ const Registro = () => {
   );
   const [tipoAliado, setTipoAliado] = useState('natural');
 
-  // Campos comunes
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [telefono, setTelefono] = useState('');
-  const [direccion, setDireccion] = useState('');
-
-  // Aliado Natural
+  const [email,           setEmail]           = useState('');
+  const [password,        setPassword]        = useState('');
+  const [telefono,        setTelefono]        = useState('');
+  const [direccion,       setDireccion]       = useState('');
   const [nombre,          setNombre]          = useState('');
-  const [apellido,        setApellido]        = useState(''); // solo para UX, se concatena al enviar
+  const [apellido,        setApellido]        = useState('');
   const [tipoDocumento,   setTipoDocumento]   = useState('CC');
   const [numeroDocumento, setNumeroDocumento] = useState('');
-
-  // Aliado Jurídico
   const [nit,                setNit]                = useState('');
   const [razonSocial,        setRazonSocial]        = useState('');
   const [representanteLegal, setRepresentanteLegal] = useState('');
@@ -59,16 +54,14 @@ const Registro = () => {
     setError('');
     setLoading(true);
 
-    // ✅ apellido no existe en CreateAliadoNaturalRequest
-    // lo concatenamos al nombre antes de enviar
     const payload =
       tipoAliado === 'juridico'
         ? { email, password, telefono, direccion, nit, razonSocial, representanteLegal }
         : { email, password, telefono, direccion,
-            nombre,   // AuthContext concatena nombre + apellido
-            apellido, // AuthContext lo recibe y concatena
+            nombre,
+            apellido,
             documento:      numeroDocumento,
-            tipo_documento: tipoDocumento };
+            tipoDocumento:  tipoDocumento };
 
     const result = await register(payload, tipoAliado === 'juridico' ? 'JURIDICO' : 'NATURAL');
     setLoading(false);
@@ -162,8 +155,8 @@ const Registro = () => {
           {step === 'form' && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex items-center gap-2 mb-1">
-                <span className="px-3 py-1 text-xs font-body font-medium rounded-full bg-cta/10 text-cta">
-                  {tipoAliado === 'natural' ? '❤️ Aliado – Persona Natural' : '🏢 Aliado – Persona Jurídica'}
+                <span className="px-3 py-1 text.xs font-body font-medium rounded-full bg-cta/10 text-cta">
+                  {tipoAliado === 'natural' ? 'Aliado – Persona Natural' : '🏢 Aliado – Persona Jurídica'}
                 </span>
                 <button type="button" onClick={goBack}
                   className="text-xs font-body text-muted-foreground hover:text-primary flex items-center gap-1">
@@ -175,7 +168,6 @@ const Registro = () => {
                 <div className="bg-destructive/10 text-destructive text-sm font-body p-3 rounded-lg">{error}</div>
               )}
 
-              {/* Campos Persona Natural */}
               {tipoAliado === 'natural' && (
                 <>
                   <div className="grid grid-cols-2 gap-3">
@@ -185,7 +177,6 @@ const Registro = () => {
                         required className={inputClass} />
                     </div>
                     <div>
-                      {/* Apellido solo para UX — se concatena al nombre antes de enviar */}
                       <label className="block text-sm font-body font-medium mb-1">Apellido</label>
                       <input type="text" value={apellido} onChange={e => setApellido(e.target.value)}
                         className={inputClass} />
@@ -206,7 +197,6 @@ const Registro = () => {
                 </>
               )}
 
-              {/* Campos Persona Jurídica */}
               {tipoAliado === 'juridico' && (
                 <>
                   <div>
@@ -227,7 +217,6 @@ const Registro = () => {
                 </>
               )}
 
-              {/* Campos comunes */}
               <div>
                 <label className="block text-sm font-body font-medium mb-1">Correo electrónico</label>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
@@ -255,7 +244,6 @@ const Registro = () => {
             </form>
           )}
 
-          {/* Ciudadano: próximamente */}
           {step === 'ciudadano-soon' && (
             <div className="bg-card rounded-xl border border-border p-8 text-center space-y-4">
               <Info className="w-8 h-8 text-primary mx-auto" />
@@ -267,7 +255,6 @@ const Registro = () => {
         </div>
       </div>
 
-      {/* Imagen lateral */}
       <div className="hidden lg:block flex-1 relative">
         <img src={loginHero} alt="Suroeste" className="absolute inset-0 w-full h-full object-cover" />
       </div>
