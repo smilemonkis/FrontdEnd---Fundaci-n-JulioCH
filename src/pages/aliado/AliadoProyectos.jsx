@@ -1,10 +1,12 @@
 // src/pages/aliado/AliadoProyectos.jsx
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
 import { FolderKanban, Users, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const AliadoProyectos = () => {
+  const navigate = useNavigate();
   const [proyectos, setProyectos] = useState([]);
   const [loading, setLoading]     = useState(true);
 
@@ -29,7 +31,7 @@ const AliadoProyectos = () => {
     <div className="space-y-6">
       <div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">Proyectos</h1>
-        <p className="font-body text-muted-foreground">Proyectos activos de la fundaciÃ³n</p>
+        <p className="font-body text-muted-foreground">Proyectos activos de la fundación</p>
       </div>
 
       {loading ? (
@@ -61,7 +63,7 @@ const AliadoProyectos = () => {
               </div>
 
               <div className="p-5">
-                {/* CÃ³digo + badge */}
+                {/* Código + badge */}
                 <div className="flex items-center gap-2 mb-2">
                   {p.codigo && (
                     <span className="text-xs font-body text-muted-foreground bg-muted px-2 py-0.5 rounded">
@@ -73,19 +75,19 @@ const AliadoProyectos = () => {
                   </span>
                 </div>
 
-                {/* TÃ­tulo */}
+                {/* Título */}
                 <h3 className="font-heading text-lg font-semibold text-foreground mb-2 line-clamp-2">
                   {p.nombre}
                 </h3>
 
-                {/* DescripciÃ³n */}
+                {/* Descripción */}
                 {p.descripcion && (
                   <p className="font-body text-sm text-muted-foreground mb-4 line-clamp-3">
                     {p.descripcion}
                   </p>
                 )}
 
-                {/* MÃ©tricas */}
+                {/* Métricas */}
                 {(p.beneficiarios || p.progreso !== undefined) && (
                   <div className="flex items-center gap-4 mb-4 p-3 rounded-lg bg-muted/60">
                     {p.beneficiarios && (
@@ -117,7 +119,7 @@ const AliadoProyectos = () => {
                   </div>
                 )}
 
-                <Button variant="outline-primary" size="sm">Ver proyecto</Button>
+                <Button variant="outline-primary" size="sm" onClick={() => navigate(`/aliado/proyectos/${p.id}`)}>Ver proyecto</Button>
               </div>
             </article>
           ))}

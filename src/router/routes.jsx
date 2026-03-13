@@ -3,11 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { AuthProvider } from "../context/AuthContext"; // Ajustado: estaba en ./ y es ../
-import Navbar from "../components/layout/Navbar"; // Ajustado: estaba en @/ o ./
-import Footer from "../components/layout/Footer"; // Ajustado
+import { AuthProvider } from "../context/AuthContext";
+import Navbar from "../components/layout/Navbar";
+import Footer from "../components/layout/Footer";
 
-// Páginas - Todas ajustadas a ../pages para salir de la carpeta router
 import Index from "../pages/Index";
 import Convocatorias from "../pages/Convocatorias";
 import ConvocatoriaDetalle from "../pages/ConvocatoriaDetalle";
@@ -26,7 +25,6 @@ import Registro from "../pages/Registro";
 import Dashboard from "../pages/Dashboard";
 import NotFound from "../pages/NotFound";
 
-// Admin - Ajustadas a ../
 import AdminLayout from "../components/admin/AdminLayout";
 import AdminDashboardHome from "../pages/admin/AdminDashboardHome";
 import AdminProyectos from "../pages/admin/AdminProyectos";
@@ -35,12 +33,12 @@ import AdminAliados from "../pages/admin/AdminAliados";
 import AdminDonaciones from "../pages/admin/AdminDonaciones";
 import AdminPerfil from "../pages/admin/AdminPerfil";
 
-// Aliado - Ajustadas a ../
 import AliadoLayout from "../components/aliado/AliadoLayout";
 import AliadoHome from "../pages/aliado/AliadoHome";
 import AliadoPerfil from "../pages/aliado/AliadoPerfil";
 import AliadoDonaciones from "../pages/aliado/AliadoDonaciones";
 import AliadoProyectos from "../pages/aliado/AliadoProyectos";
+import AliadoProyectoDetalle from "../pages/aliado/AliadoProyectoDetalle"; // ← NUEVO
 import AliadoDonar from "../pages/aliado/AliadoDonar";
 
 const queryClient = new QueryClient({
@@ -49,9 +47,9 @@ const queryClient = new QueryClient({
 
 const PublicLayout = () => {
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith('/admin');
+  const isAdmin  = location.pathname.startsWith('/admin');
   const isAliado = location.pathname.startsWith('/aliado');
-  const isAuth = ['/login', '/registro'].includes(location.pathname);
+  const isAuth   = ['/login', '/registro'].includes(location.pathname);
   const hideChrome = isAdmin || isAliado || isAuth;
 
   return (
@@ -91,6 +89,7 @@ const PublicLayout = () => {
           <Route path="perfil" element={<AliadoPerfil />} />
           <Route path="donaciones" element={<AliadoDonaciones />} />
           <Route path="proyectos" element={<AliadoProyectos />} />
+          <Route path="proyectos/:id" element={<AliadoProyectoDetalle />} /> {/* ← NUEVO */}
           <Route path="donar" element={<AliadoDonar />} />
         </Route>
 

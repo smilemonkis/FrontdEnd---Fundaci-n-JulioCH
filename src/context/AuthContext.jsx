@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { loginService, registerService } from '../services/authService';
+import { toast } from 'sonner';
 
 const AuthContext = createContext(null);
 
@@ -27,17 +28,14 @@ const construirNombreDisplay = (data) => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser]       = useState(null);
+  const [user,    setUser]    = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch {
-        localStorage.clear();
-      }
+      try { setUser(JSON.parse(savedUser)); }
+      catch { localStorage.clear(); }
     }
     setLoading(false);
   }, []);
@@ -65,8 +63,23 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       localStorage.setItem('user',  JSON.stringify(userData));
       localStorage.setItem('token', data.token);
+
+      // ✅ Toast de bienvenida con nombre real
+      const nombre = construirNombreDisplay(data);
+      toast.success(`¡Bienvenido, ${nombre}! 👋`, {
+        description: mapearRol(data.rol) === 'admin'
+          ? 'Accediendo al panel de administración...'
+          : 'Accediendo a tu panel de aliado...',
+        duration: 3000,
+      });
+
       return { success: true, message: 'Bienvenido', role: userData.role };
     } catch (error) {
+      // ❌ Toast de error
+      toast.error('No pudimos iniciar sesión', {
+        description: error.message || 'Verifica tu correo y contraseña.',
+        duration: 4000,
+      });
       return { success: false, message: error.message || 'Error de credenciales', role: null };
     }
   }, []);
@@ -74,17 +87,32 @@ export const AuthProvider = ({ children }) => {
   const register = useCallback(async (formData, tipoAliado) => {
     try {
       await registerService(formData, tipoAliado);
+      toast.success('¡Registro exitoso!', {
+        description: 'Ya puedes iniciar sesión con tu cuenta.',
+        duration: 4000,
+      });
       return { success: true, message: '¡Registro exitoso!' };
     } catch (error) {
+      toast.error('Error en el registro', {
+        description: error.message || 'Intenta de nuevo.',
+        duration: 4000,
+      });
       return { success: false, message: error.message };
     }
   }, []);
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(() => {
+    const nombre = user?.profile?.nombreDisplay || 'Aliado';
     setUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
-  }, []);
+
+    // 👋 Toast de despedida
+    toast.info(`Hasta pronto, ${nombre} 👋`, {
+      description: 'Sesión cerrada correctamente.',
+      duration: 3000,
+    });
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{

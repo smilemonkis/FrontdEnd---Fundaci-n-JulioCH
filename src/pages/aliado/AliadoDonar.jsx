@@ -82,16 +82,47 @@ const AliadoDonar = () => {
 
   if (success) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 animate-in fade-in zoom-in duration-300">
+      <div className="flex flex-col items-center justify-center py-12 text-center space-y-6 animate-in fade-in zoom-in duration-300 max-w-lg mx-auto">
         <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
           <CheckCircle2 className="w-10 h-10 text-primary" />
         </div>
-        <h2 className="font-heading text-2xl font-bold text-foreground">¡Donación registrada!</h2>
-        <p className="font-body text-muted-foreground max-w-md">
-          Tu donación de <strong>${montoFinal.toLocaleString('es-CO')}</strong> ha sido recibida.
-          Podrás ver el recibo una vez sea confirmada por tesorería.
-        </p>
-        <Button onClick={resetForm}>Hacer otra donación</Button>
+        <div>
+          <h2 className="font-heading text-2xl font-bold text-foreground">¡Donación registrada!</h2>
+          <p className="font-body text-muted-foreground mt-1">
+            Tu intención de donar <strong className="text-foreground">${montoFinal.toLocaleString('es-CO')}</strong> ha quedado registrada.
+          </p>
+        </div>
+
+        {/* Pasos a seguir */}
+        <div className="w-full bg-amber-50 border border-amber-200 rounded-xl p-5 text-left space-y-3">
+          <p className="font-body text-sm font-bold text-amber-800">¿Qué sigue ahora?</p>
+          <div className="space-y-2">
+            {[
+              { n: '1', text: 'Realiza la transferencia bancaria a la cuenta de la fundación.', sub: 'Bancolombia · Cta Ahorros · 123-456789-00' },
+              { n: '2', text: 'Nuestro equipo verificará el pago en máximo 24 horas hábiles.' },
+              { n: '3', text: 'Una vez confirmado, tu comprobante estará disponible en "Mis Donaciones".' },
+            ].map(step => (
+              <div key={step.n} className="flex gap-3 items-start">
+                <span className="w-5 h-5 rounded-full bg-amber-400 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  {step.n}
+                </span>
+                <div>
+                  <p className="font-body text-xs text-amber-800">{step.text}</p>
+                  {step.sub && <p className="font-mono text-xs font-semibold text-amber-900 mt-0.5">{step.sub}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex gap-3 w-full">
+          <Button variant="outline" className="flex-1" onClick={() => window.location.href = '/aliado/donaciones'}>
+            Ver mis donaciones
+          </Button>
+          <Button className="flex-1" onClick={resetForm}>
+            Hacer otra donación
+          </Button>
+        </div>
       </div>
     );
   }
@@ -101,6 +132,22 @@ const AliadoDonar = () => {
       <div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">Hacer una donación</h1>
         <p className="font-body text-muted-foreground">Tu aporte transforma vidas en el Suroeste</p>
+      </div>
+
+      {/* Banner informativo del proceso */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
+        <span className="text-amber-500 text-xl shrink-0">ℹ️</span>
+        <div className="space-y-1">
+          <p className="font-body text-sm font-semibold text-amber-800">¿Cómo funciona el proceso?</p>
+          <ol className="font-body text-xs text-amber-700 space-y-1 list-decimal list-inside">
+            <li>Registra tu donación en este formulario.</li>
+            <li>Realiza la transferencia a la cuenta de la fundación:
+              <span className="block ml-4 mt-0.5 font-mono font-semibold">Bancolombia · Cta Ahorros · 123-456789-00</span>
+            </li>
+            <li>Nuestro equipo verificará el pago y confirmará tu donación en máximo <strong>24 horas hábiles</strong>.</li>
+            <li>Recibirás el comprobante en tu panel una vez sea aprobada.</li>
+          </ol>
+        </div>
       </div>
 
       {/* Paso 1 — Monto */}
