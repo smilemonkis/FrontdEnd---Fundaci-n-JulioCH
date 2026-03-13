@@ -1,4 +1,4 @@
-// src/pages/admin/AdminConvocatorias.jsx
+// src/pages/admin/AdminNoticias.jsx
 import { useEffect, useState, useMemo } from 'react';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -14,9 +14,12 @@ import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import CloudinaryUpload from '@/components/ui/CloudinaryUpload';
 
-const emptyForm = { titulo: '', descripcion: '', imagenUrl: '', fechaInicio: '', fechaFin: '', activa: true };
+const emptyForm = {
+  titulo: '', resumen: '', contenido: '', imagenUrl: '',
+  autor: '', publicado: false, fechaPublicacion: '',
+};
 
-const AdminConvocatorias = () => {
+const AdminNoticias = () => {
   const [items, setItems]           = useState([]);
   const [loading, setLoading]       = useState(true);
   const [search, setSearch]         = useState('');
@@ -29,10 +32,10 @@ const AdminConvocatorias = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/convocatorias?page=0&size=100');
+      const res = await api.get('/noticias?page=0&size=100');
       setItems(res.data.content || []);
     } catch {
-      toast.error('Error cargando convocatorias');
+      toast.error('Error cargando noticias');
     } finally {
       setLoading(false);
     }
@@ -41,51 +44,51 @@ const AdminConvocatorias = () => {
   useEffect(() => { fetchData(); }, []);
 
   const filtered = useMemo(() =>
-    items.filter(c => c.titulo.toLowerCase().includes(search.toLowerCase())),
+    items.filter(n => n.titulo.toLowerCase().includes(search.toLowerCase())),
     [items, search]);
 
   const openCreate = () => { setEditing(null); setForm(emptyForm); setDialogOpen(true); };
-  const openEdit   = (c) => {
-    setEditing(c);
+  const openEdit   = (n) => {
+    setEditing(n);
     setForm({
-      titulo:      c.titulo,
-      descripcion: c.descripcion || '',
-      imagenUrl:   c.imagenUrl   || '',
-      fechaInicio: c.fechaInicio || '',
-      fechaFin:    c.fechaFin    || '',
-      activa:      c.activa,
+      titulo:           n.titulo,
+      resumen:          n.resumen          || '',
+      contenido:        n.contenido        || '',
+      imagenUrl:        n.imagenUrl        || '',
+      autor:            n.autor            || '',
+      publicado:        n.publicado        ?? false,
+      fechaPublicacion: n.fechaPublicacion || '',
     });
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
-    if (!form.titulo || !form.fechaInicio || !form.fechaFin) {
+    if (!form.titulo || !form.resumen || !form.contenido || !form.autor || !form.fechaPublicacion) {
       toast.error('Completa los campos obligatorios');
       return;
     }
     setSaving(true);
     const payload = {
-      titulo:      form.titulo,
-      descripcion: form.descripcion || null,
-      imagenUrl:   form.imagenUrl   || null,
-      fechaInicio: form.fechaInicio,
-      fechaFin:    form.fechaFin,
+      titulo:           form.titulo,
+      resumen:          form.resumen,
+      contenido:        form.contenido,
+      imagenUrl:        form.imagenUrl || null,
+      autor:            form.autor,
+      publicado:        form.publicado,
+      fechaPublicacion: form.fechaPublicacion,
     };
     try {
       if (editing) {
-        await api.put(`/convocatorias/${editing.id}`, payload);
-        if (form.activa !== editing.activa) {
-          await api.put(`/convocatorias/${editing.id}/${form.activa ? 'activar' : 'desactivar'}`);
-        }
-        toast.success('Convocatoria actualizada');
+        await api.put(`/noticias/${editing.id}`, payload);
+        toast.success('Noticia actualizada');
       } else {
-        await api.post('/convocatorias', payload);
-        toast.success('Convocatoria creada');
+        await api.post('/noticias', payload);
+        toast.success('Noticia creada');
       }
       setDialogOpen(false);
       fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error guardando convocatoria');
+      toast.error(error.response?.data?.message || 'Error guardando noticia');
     } finally {
       setSaving(false);
     }
@@ -94,30 +97,23 @@ const AdminConvocatorias = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await api.delete(`/convocatorias/${deleteId}`);
-      toast.success('Convocatoria eliminada');
+      await api.delete(`/noticias/${deleteId}`);
+      toast.success('Noticia eliminada');
       setDeleteId(null);
       fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error eliminando convocatoria');
+      toast.error(error.response?.data?.message || 'Error eliminando noticia');
     }
-  };
-
-  const isVigente = (c) => {
-    if (!c.activa) return false;
-    const today = new Date().toISOString().split('T')[0];
-    if (c.fechaFin && c.fechaFin < today) return false;
-    return true;
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Convocatorias</h1>
-          <p className="font-body text-muted-foreground text-sm">Gestión de convocatorias y oportunidades</p>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Noticias</h1>
+          <p className="font-body text-muted-foreground text-sm">Gestión de noticias y publicaciones</p>
         </div>
-        <Button onClick={openCreate} className="gap-2"><Plus className="w-4 h-4" /> Nueva Convocatoria</Button>
+        <Button onClick={openCreate} className="gap-2"><Plus className="w-4 h-4" /> Nueva Noticia</Button>
       </div>
 
       <div className="relative max-w-sm">
@@ -133,30 +129,28 @@ const AdminConvocatorias = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Título</TableHead>
-                <TableHead>Inicio</TableHead>
-                <TableHead>Fin</TableHead>
+                <TableHead>Autor</TableHead>
+                <TableHead>Fecha</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No hay convocatorias</TableCell></TableRow>
-              ) : filtered.map(c => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-medium max-w-[300px] truncate">{c.titulo}</TableCell>
-                  <TableCell>{c.fechaInicio}</TableCell>
-                  <TableCell>{c.fechaFin || '—'}</TableCell>
+                <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No hay noticias</TableCell></TableRow>
+              ) : filtered.map(n => (
+                <TableRow key={n.id}>
+                  <TableCell className="font-medium max-w-[280px] truncate">{n.titulo}</TableCell>
+                  <TableCell>{n.autor}</TableCell>
+                  <TableCell>{n.fechaPublicacion}</TableCell>
                   <TableCell>
-                    {isVigente(c)
-                      ? <Badge className="bg-primary/15 text-primary border-0">Vigente</Badge>
-                      : c.activa
-                        ? <Badge className="bg-accent/15 text-accent border-0">Vencida</Badge>
-                        : <Badge className="bg-muted text-muted-foreground border-0">Inactiva</Badge>}
+                    {n.publicado
+                      ? <Badge className="bg-primary/15 text-primary border-0">Publicada</Badge>
+                      : <Badge className="bg-muted text-muted-foreground border-0">Borrador</Badge>}
                   </TableCell>
                   <TableCell className="text-right space-x-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(c)}><Pencil className="w-4 h-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(n)}><Pencil className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setDeleteId(n.id)} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -166,30 +160,34 @@ const AdminConvocatorias = () => {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-heading">{editing ? 'Editar Convocatoria' : 'Nueva Convocatoria'}</DialogTitle>
+            <DialogTitle className="font-heading">{editing ? 'Editar Noticia' : 'Nueva Noticia'}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div><Label>Título *</Label><Input value={form.titulo} onChange={e => setForm({ ...form, titulo: e.target.value })} placeholder="Ej: Buscamos voluntarios..." /></div>
-            <div><Label>Descripción</Label><Textarea value={form.descripcion} onChange={e => setForm({ ...form, descripcion: e.target.value })} rows={3} /></div>
+
+            <div><Label>Título *</Label><Input value={form.titulo} onChange={e => setForm({ ...form, titulo: e.target.value })} placeholder="Ej: La fundación lanza nuevo programa..." /></div>
+            <div><Label>Resumen *</Label><Textarea value={form.resumen} onChange={e => setForm({ ...form, resumen: e.target.value })} rows={2} placeholder="Breve descripción para listados..." /></div>
+            <div><Label>Contenido *</Label><Textarea value={form.contenido} onChange={e => setForm({ ...form, contenido: e.target.value })} rows={6} placeholder="Contenido completo de la noticia..." /></div>
+
             <div className="grid grid-cols-2 gap-4">
-              <div><Label>Fecha inicio *</Label><Input type="date" value={form.fechaInicio} onChange={e => setForm({ ...form, fechaInicio: e.target.value })} /></div>
-              <div><Label>Fecha fin *</Label><Input type="date" value={form.fechaFin} onChange={e => setForm({ ...form, fechaFin: e.target.value })} /></div>
+              <div><Label>Autor *</Label><Input value={form.autor} onChange={e => setForm({ ...form, autor: e.target.value })} placeholder="Nombre del autor" /></div>
+              <div><Label>Fecha de publicación *</Label><Input type="date" value={form.fechaPublicacion} onChange={e => setForm({ ...form, fechaPublicacion: e.target.value })} /></div>
             </div>
-            {editing && (
-              <div className="flex items-center gap-3">
-                <Switch checked={form.activa} onCheckedChange={v => setForm({ ...form, activa: v })} />
-                <Label>Convocatoria activa</Label>
-              </div>
-            )}
+
             <CloudinaryUpload
               value={form.imagenUrl}
               onChange={url => setForm({ ...form, imagenUrl: url })}
-              label="Imagen de la convocatoria"
-              folder="fundacion/convocatorias"
+              label="Imagen principal"
+              folder="fundacion/noticias"
               disabled={saving}
             />
+
+            <div className="flex items-center gap-3">
+              <Switch checked={form.publicado} onCheckedChange={v => setForm({ ...form, publicado: v })} />
+              <Label>Publicar noticia</Label>
+            </div>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
@@ -204,7 +202,7 @@ const AdminConvocatorias = () => {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar convocatoria?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar noticia?</AlertDialogTitle>
             <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -217,4 +215,4 @@ const AdminConvocatorias = () => {
   );
 };
 
-export default AdminConvocatorias;
+export default AdminNoticias;

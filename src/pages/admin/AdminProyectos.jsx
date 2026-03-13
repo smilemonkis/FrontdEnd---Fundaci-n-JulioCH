@@ -11,12 +11,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Pencil, Trash2, Search, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import CloudinaryUpload from '@/components/ui/CloudinaryUpload';
 
-const emptyForm = { codigo: '', nombre: '', descripcion: '', fechaInicio: '', fechaFin: '', activo: true, progreso: 0, beneficiarios: '', presupuesto: '' };
+const emptyForm = { codigo: '', nombre: '', descripcion: '', imagenUrl: '', fechaInicio: '', fechaFin: '', activo: true, progreso: 0, beneficiarios: '', presupuesto: '' };
 
-// Hoy en formato yyyy-MM-dd para el atributo min de los inputs
 const hoy = () => new Date().toISOString().split('T')[0];
 
 const AdminProyectos = () => {
@@ -59,30 +59,28 @@ const AdminProyectos = () => {
     setEditing(p);
     setFormErrors({});
     setForm({
-      codigo:       p.codigo,
-      nombre:       p.nombre,
-      descripcion:  p.descripcion || '',
-      fechaInicio:  p.fechaInicio || '',
-      fechaFin:     p.fechaFin    || '',
-      activo:       p.activo,
-      progreso:     p.progreso    ?? 0,
-      beneficiarios:p.beneficiarios ?? '',
-      presupuesto:  p.presupuesto  || '',
+      codigo:        p.codigo,
+      nombre:        p.nombre,
+      descripcion:   p.descripcion  || '',
+      imagenUrl:     p.imagenUrl    || '',
+      fechaInicio:   p.fechaInicio  || '',
+      fechaFin:      p.fechaFin     || '',
+      activo:        p.activo,
+      progreso:      p.progreso     ?? 0,
+      beneficiarios: p.beneficiarios ?? '',
+      presupuesto:   p.presupuesto  || '',
     });
     setDialogOpen(true);
   };
 
-  // ── Validación de fechas ──────────────────────────────────
   const validarFechas = () => {
     const e = {};
     const today = hoy();
-
     if (!form.fechaInicio) {
       e.fechaInicio = 'La fecha de inicio es requerida';
     } else if (!editing && form.fechaInicio < today) {
       e.fechaInicio = 'La fecha de inicio no puede ser anterior a hoy';
     }
-
     if (form.fechaFin) {
       if (form.fechaFin < today) {
         e.fechaFin = 'La fecha de fin no puede ser anterior a hoy';
@@ -90,10 +88,8 @@ const AdminProyectos = () => {
         e.fechaFin = 'La fecha de fin debe ser posterior a la de inicio';
       }
     }
-
     if (!form.codigo.trim()) e.codigo = 'El código es requerido';
     if (!form.nombre.trim()) e.nombre = 'El nombre es requerido';
-
     setFormErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -104,12 +100,13 @@ const AdminProyectos = () => {
     const payload = {
       codigo:        form.codigo,
       nombre:        form.nombre,
-      descripcion:   form.descripcion || null,
+      descripcion:   form.descripcion   || null,
+      imagenUrl:     form.imagenUrl     || null,
       fechaInicio:   form.fechaInicio,
-      fechaFin:      form.fechaFin || null,
+      fechaFin:      form.fechaFin      || null,
       progreso:      Number(form.progreso) || 0,
       beneficiarios: form.beneficiarios !== '' ? Number(form.beneficiarios) : null,
-      presupuesto:   form.presupuesto || null,
+      presupuesto:   form.presupuesto   || null,
     };
     try {
       if (editing) {
@@ -144,9 +141,7 @@ const AdminProyectos = () => {
   };
 
   const FieldError = ({ campo }) =>
-    formErrors[campo]
-      ? <p className="text-xs text-destructive mt-1">{formErrors[campo]}</p>
-      : null;
+    formErrors[campo] ? <p className="text-xs text-destructive mt-1">{formErrors[campo]}</p> : null;
 
   const inputErr = (campo) =>
     formErrors[campo] ? 'border-destructive focus:ring-destructive/30' : '';
@@ -164,8 +159,7 @@ const AdminProyectos = () => {
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Buscar por nombre o código..." value={search}
-            onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar por nombre o código..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
         <div className="flex gap-1">
           {['todos', 'activos', 'cerrados'].map(f => (
@@ -217,8 +211,7 @@ const AdminProyectos = () => {
                   </TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="w-4 h-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleteId(p.id)}
-                      className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setDeleteId(p.id)} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -227,7 +220,6 @@ const AdminProyectos = () => {
         </div>
       )}
 
-      {/* Dialog crear/editar */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -237,36 +229,27 @@ const AdminProyectos = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Código *</Label>
-                <Input value={form.codigo}
-                  onChange={e => setForm({ ...form, codigo: e.target.value })}
-                  placeholder="PROY-001"
-                  className={inputErr('codigo')} />
+                <Input value={form.codigo} onChange={e => setForm({ ...form, codigo: e.target.value })} placeholder="PROY-001" className={inputErr('codigo')} />
                 <FieldError campo="codigo" />
               </div>
               <div>
                 <Label>Nombre *</Label>
-                <Input value={form.nombre}
-                  onChange={e => setForm({ ...form, nombre: e.target.value })}
-                  className={inputErr('nombre')} />
+                <Input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className={inputErr('nombre')} />
                 <FieldError campo="nombre" />
               </div>
             </div>
 
             <div>
               <Label>Descripción</Label>
-              <Textarea value={form.descripcion}
-                onChange={e => setForm({ ...form, descripcion: e.target.value })} rows={3} />
+              <Textarea value={form.descripcion} onChange={e => setForm({ ...form, descripcion: e.target.value })} rows={3} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Fecha inicio *</Label>
-                <Input type="date"
-                  value={form.fechaInicio}
-                  min={!editing ? hoy() : undefined}
+                <Input type="date" value={form.fechaInicio} min={!editing ? hoy() : undefined}
                   onChange={e => {
                     const val = e.target.value;
-                    // Si la fecha fin ya existe y es <= al nuevo inicio, la limpia
                     const newFin = form.fechaFin && form.fechaFin <= val ? '' : form.fechaFin;
                     setForm({ ...form, fechaInicio: val, fechaFin: newFin });
                     setFormErrors(prev => ({ ...prev, fechaInicio: '', fechaFin: '' }));
@@ -276,20 +259,13 @@ const AdminProyectos = () => {
               </div>
               <div>
                 <Label>Fecha fin</Label>
-                <Input type="date"
-                  value={form.fechaFin}
-                  min={form.fechaInicio || hoy()}
-                  onChange={e => {
-                    setForm({ ...form, fechaFin: e.target.value });
-                    setFormErrors(prev => ({ ...prev, fechaFin: '' }));
-                  }}
+                <Input type="date" value={form.fechaFin} min={form.fechaInicio || hoy()}
+                  onChange={e => { setForm({ ...form, fechaFin: e.target.value }); setFormErrors(prev => ({ ...prev, fechaFin: '' })); }}
                   className={inputErr('fechaFin')} />
                 <FieldError campo="fechaFin" />
                 {form.fechaInicio && form.fechaFin && (
                   <p className={`text-xs mt-1 ${form.fechaFin > form.fechaInicio ? 'text-primary' : 'text-destructive'}`}>
-                    {form.fechaFin > form.fechaInicio
-                      ? '✓ Fechas válidas'
-                      : '✗ La fecha fin debe ser posterior al inicio'}
+                    {form.fechaFin > form.fechaInicio ? '✓ Fechas válidas' : '✗ La fecha fin debe ser posterior al inicio'}
                   </p>
                 )}
               </div>
@@ -304,51 +280,37 @@ const AdminProyectos = () => {
 
             <Separator />
 
-            {/* Progreso, beneficiarios, presupuesto */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Progreso (%)</Label>
-                <div className="relative">
-                  <Input
-                    type="number" min={0} max={100}
-                    value={form.progreso}
-                    onChange={e => setForm({ ...form, progreso: Math.min(100, Math.max(0, Number(e.target.value))) })}
-                    placeholder="0"
-                  />
-                </div>
-                {/* Barra visual */}
+                <Input type="number" min={0} max={100} value={form.progreso}
+                  onChange={e => setForm({ ...form, progreso: Math.min(100, Math.max(0, Number(e.target.value))) })} placeholder="0" />
                 <div className="w-full bg-muted rounded-full h-1.5 mt-2">
-                  <div className="bg-primary h-1.5 rounded-full transition-all"
-                    style={{ width: `${form.progreso}%` }} />
+                  <div className="bg-primary h-1.5 rounded-full transition-all" style={{ width: `${form.progreso}%` }} />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">{form.progreso}% completado</p>
               </div>
               <div>
                 <Label>Beneficiarios</Label>
-                <Input
-                  type="number" min={0}
-                  value={form.beneficiarios}
-                  onChange={e => setForm({ ...form, beneficiarios: e.target.value })}
-                  placeholder="Ej: 1200"
-                />
+                <Input type="number" min={0} value={form.beneficiarios} onChange={e => setForm({ ...form, beneficiarios: e.target.value })} placeholder="Ej: 1200" />
               </div>
             </div>
 
             <div>
               <Label>Presupuesto</Label>
-              <Input
-                value={form.presupuesto}
-                onChange={e => setForm({ ...form, presupuesto: e.target.value })}
-                placeholder="Ej: $50.000.000"
-              />
+              <Input value={form.presupuesto} onChange={e => setForm({ ...form, presupuesto: e.target.value })} placeholder="Ej: $50.000.000" />
               <p className="text-xs text-muted-foreground mt-1">Texto libre — escribe el monto como quieras mostrarlo</p>
             </div>
 
             <Separator />
-            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-              <ImageIcon className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground font-body">Gestión de imágenes disponible próximamente.</p>
-            </div>
+
+            <CloudinaryUpload
+              value={form.imagenUrl}
+              onChange={url => setForm({ ...form, imagenUrl: url })}
+              label="Imagen del proyecto"
+              folder="fundacion/proyectos"
+              disabled={saving}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
@@ -368,8 +330,7 @@ const AdminProyectos = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

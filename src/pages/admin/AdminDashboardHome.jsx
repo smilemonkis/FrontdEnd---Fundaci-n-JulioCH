@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import {
   FolderKanban, Users, Heart, Megaphone, Loader2,
   ArrowUpRight, CalendarDays, Clock, CheckCircle2,
-  ArrowRight, ExternalLink
+  ArrowRight, ExternalLink, Newspaper, MapPin, Briefcase, Mail
 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis,
@@ -24,29 +24,34 @@ const CHART_COLORS = [
 
 const AdminDashboardHome = () => {
   const navigate = useNavigate();
-  const [kpis, setKpis]                       = useState(null);
-  const [recentDonaciones, setRecentDonaciones] = useState([]);
-  const [proyectos, setProyectos]               = useState([]);
-  const [donacionesPorMes, setDonacionesPorMes] = useState([]);
-  const [loading, setLoading]                   = useState(true);
+  const [kpis, setKpis]                         = useState(null);
+  const [recentDonaciones, setRecentDonaciones]   = useState([]);
+  const [proyectos, setProyectos]                 = useState([]);
+  const [recentNoticias, setRecentNoticias]        = useState([]);
+  const [donacionesPorMes, setDonacionesPorMes]   = useState([]);
+  const [loading, setLoading]                     = useState(true);
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        // Llamadas paralelas a Spring Boot
-        // Usamos size grande para obtener todos los registros en el dashboard
-        const [proyRes, aliNatRes, aliJurRes, donRes, convRes] = await Promise.all([
+        const [
+          proyRes, aliNatRes, aliJurRes, donRes, convRes,
+          notRes, parRes, opRes, susRes,
+        ] = await Promise.all([
           api.get('/proyectos?page=0&size=100'),
           api.get('/aliados-naturales?page=0&size=1'),
           api.get('/aliados-juridicos?page=0&size=1'),
           api.get('/donaciones?page=0&size=100'),
           api.get('/convocatorias?page=0&size=100'),
+          api.get('/noticias?page=0&size=5'),
+          api.get('/parchate?page=0&size=1'),
+          api.get('/oportunidades?page=0&size=1'),
+          api.get('/suscripciones?page=0&size=1'),
         ]);
 
-        // Spring Boot devuelve Page<T>: { content, totalElements, ... }
-        const proyData = proyRes.data.content     || [];
-        const donData  = donRes.data.content      || [];
-        const convData = convRes.data.content     || [];
+        const proyData    = proyRes.data.content  || [];
+        const donData     = donRes.data.content   || [];
+        const convData    = convRes.data.content  || [];
         const totalAliNat = aliNatRes.data.totalElements || 0;
         const totalAliJur = aliJurRes.data.totalElements || 0;
 
@@ -54,8 +59,10 @@ const AdminDashboardHome = () => {
         const confirmadas = donData.filter(d => d.estado === 'COMPLETADA');
 
         setProyectos(proyData.slice(0, 5));
+        setRecentNoticias(notRes.data.content || []);
 
         setKpis({
+          // existentes
           totalProyectos:        proyData.length,
           proyectosActivos:      proyData.filter(p => p.activo).length,
           totalAliados:          totalAliNat + totalAliJur,
@@ -66,12 +73,16 @@ const AdminDashboardHome = () => {
           donacionesPendientes:  pendientes.length,
           montoPendiente:        pendientes.reduce((s, d) => s + Number(d.monto), 0),
           donacionesConfirmadas: confirmadas.length,
+          // nuevos
+          totalNoticias:         notRes.data.totalElements   || 0,
+          noticiasPublicadas:    (notRes.data.content || []).filter(n => n.publicado).length,
+          totalParchate:         parRes.data.totalElements   || 0,
+          totalOportunidades:    opRes.data.totalElements    || 0,
+          totalSuscripciones:    susRes.data.totalElements   || 0,
         });
 
-        // Últimas 5 donaciones para la tabla reciente
         setRecentDonaciones(donData.slice(0, 5));
 
-        // Agrupar donaciones por mes (últimos 6 meses)
         const meses = {};
         const monthNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
         const now = new Date();
@@ -127,12 +138,26 @@ const AdminDashboardHome = () => {
         </p>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard title="Proyectos Activos"  value={`${k.proyectosActivos}`}                           subtitle={`de ${k.totalProyectos} totales`}    icon={FolderKanban} accent="primary"   onClick={() => navigate('/admin/proyectos')} />
-        <KPICard title="Convocatorias"      value={`${k.convocatoriasActivas}`}                       subtitle={`${k.totalConvocatorias} en total`}  icon={Megaphone}    accent="secondary" onClick={() => navigate('/admin/convocatorias')} />
-        <KPICard title="Aliados"            value={`${k.totalAliados}`}                               subtitle="naturales y jurídicos"               icon={Users}        accent="accent"    onClick={() => navigate('/admin/aliados')} />
-        <KPICard title="Total Donaciones"   value={`$${k.montoDonaciones.toLocaleString('es-CO')}`}   subtitle={`${k.totalDonaciones} donaciones`}   icon={Heart}        accent="primary"   onClick={() => navigate('/admin/donaciones')} />
+      {/* KPIs — Gestión */}
+      <div>
+        <p className="text-xs font-body uppercase tracking-wider text-muted-foreground mb-3">Gestión</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <KPICard title="Proyectos Activos"  value={`${k.proyectosActivos}`}                         subtitle={`de ${k.totalProyectos} totales`}    icon={FolderKanban} accent="primary"   onClick={() => navigate('/admin/proyectos')} />
+          <KPICard title="Convocatorias"      value={`${k.convocatoriasActivas}`}                     subtitle={`${k.totalConvocatorias} en total`}  icon={Megaphone}    accent="secondary" onClick={() => navigate('/admin/convocatorias')} />
+          <KPICard title="Aliados"            value={`${k.totalAliados}`}                             subtitle="naturales y jurídicos"               icon={Users}        accent="accent"    onClick={() => navigate('/admin/aliados')} />
+          <KPICard title="Total Donaciones"   value={`$${k.montoDonaciones.toLocaleString('es-CO')}`} subtitle={`${k.totalDonaciones} donaciones`}   icon={Heart}        accent="primary"   onClick={() => navigate('/admin/donaciones')} />
+        </div>
+      </div>
+
+      {/* KPIs — Contenido */}
+      <div>
+        <p className="text-xs font-body uppercase tracking-wider text-muted-foreground mb-3">Contenido</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <KPICard title="Noticias"       value={`${k.totalNoticias}`}       subtitle="publicaciones"         icon={Newspaper} accent="primary"   onClick={() => navigate('/admin/noticias')} />
+          <KPICard title="Párchate"       value={`${k.totalParchate}`}       subtitle="actividades y eventos" icon={MapPin}    accent="secondary" onClick={() => navigate('/admin/parchate')} />
+          <KPICard title="Oportunidades"  value={`${k.totalOportunidades}`}  subtitle="empleo, formación..."  icon={Briefcase} accent="accent"    onClick={() => navigate('/admin/oportunidades')} />
+          <KPICard title="Suscripciones"  value={`${k.totalSuscripciones}`}  subtitle="al boletín"            icon={Mail}      accent="primary"   onClick={() => navigate('/admin/suscripciones')} />
+        </div>
       </div>
 
       {/* Pendientes / Confirmadas */}
@@ -291,6 +316,68 @@ const AdminDashboardHome = () => {
                 <Badge className={`text-[10px] px-1.5 shrink-0 ${p.activo ? 'bg-primary/15 text-primary border-0' : 'bg-muted text-muted-foreground border-0'}`}>
                   {p.activo ? 'Activo' : 'Cerrado'}
                 </Badge>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Noticias recientes */}
+        <Card className="border border-border">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-body font-medium text-muted-foreground">Noticias Recientes</CardTitle>
+              <Button variant="ghost" size="sm" className="text-xs gap-1 text-muted-foreground" onClick={() => navigate('/admin/noticias')}>
+                Ver todas <ExternalLink className="w-3 h-3" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            {recentNoticias.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">Sin noticias</p>
+            ) : recentNoticias.map(n => (
+              <button key={n.id} onClick={() => navigate('/admin/noticias')} className="w-full flex items-center justify-between py-2.5 px-2 rounded-lg border-b border-border last:border-0 hover:bg-muted/50 transition-colors text-left">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 bg-primary/10">
+                    <Newspaper className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{n.titulo}</p>
+                    <p className="text-xs text-muted-foreground">{n.autor} · {n.fechaPublicacion}</p>
+                  </div>
+                </div>
+                <Badge className={`text-[10px] px-1.5 shrink-0 ${n.publicado ? 'bg-primary/15 text-primary border-0' : 'bg-muted text-muted-foreground border-0'}`}>
+                  {n.publicado ? 'Publicada' : 'Borrador'}
+                </Badge>
+              </button>
+            ))}
+            <Button variant="ghost" size="sm" className="w-full mt-2 text-muted-foreground text-xs" onClick={() => navigate('/admin/noticias')}>
+              Ver todas <ArrowRight className="w-3 h-3 ml-1" />
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Resumen contenido */}
+        <Card className="border border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-body font-medium text-muted-foreground">Resumen de Contenido</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[
+              { label: 'Actividades Párchate',  value: k.totalParchate,      icon: MapPin,    path: '/admin/parchate',       color: 'text-secondary' },
+              { label: 'Oportunidades activas', value: k.totalOportunidades,  icon: Briefcase, path: '/admin/oportunidades',  color: 'text-accent' },
+              { label: 'Suscriptores boletín',  value: k.totalSuscripciones,  icon: Mail,      path: '/admin/suscripciones',  color: 'text-primary' },
+            ].map(item => (
+              <button key={item.label} onClick={() => navigate(item.path)} className="w-full flex items-center justify-between py-2.5 px-2 rounded-lg border-b border-border last:border-0 hover:bg-muted/50 transition-colors text-left">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
+                    <item.icon className={`w-4 h-4 ${item.color}`} />
+                  </div>
+                  <p className="text-sm font-medium text-foreground">{item.label}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-heading text-lg font-bold text-foreground">{item.value}</span>
+                  <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                </div>
               </button>
             ))}
           </CardContent>

@@ -32,13 +32,18 @@ import AdminConvocatorias from "../pages/admin/AdminConvocatorias";
 import AdminAliados from "../pages/admin/AdminAliados";
 import AdminDonaciones from "../pages/admin/AdminDonaciones";
 import AdminPerfil from "../pages/admin/AdminPerfil";
+import AdminNoticias from "../pages/admin/AdminNoticias";
+import AdminParchate from "../pages/admin/AdminParchate";
+import AdminOportunidades from "../pages/admin/AdminOportunidades";
+import AdminSuscripciones from "../pages/admin/AdminSuscripciones";
+import AdminBanner from "../pages/admin/AdminBanner";
 
 import AliadoLayout from "../components/aliado/AliadoLayout";
 import AliadoHome from "../pages/aliado/AliadoHome";
 import AliadoPerfil from "../pages/aliado/AliadoPerfil";
 import AliadoDonaciones from "../pages/aliado/AliadoDonaciones";
 import AliadoProyectos from "../pages/aliado/AliadoProyectos";
-import AliadoProyectoDetalle from "../pages/aliado/AliadoProyectoDetalle"; // ← NUEVO
+import AliadoProyectoDetalle from "../pages/aliado/AliadoProyectoDetalle";
 import AliadoDonar from "../pages/aliado/AliadoDonar";
 
 const queryClient = new QueryClient({
@@ -81,6 +86,12 @@ const PublicLayout = () => {
           <Route path="aliados" element={<AdminAliados />} />
           <Route path="donaciones" element={<AdminDonaciones />} />
           <Route path="perfil" element={<AdminPerfil />} />
+          {/* ── Módulos de contenido ── */}
+          <Route path="noticias" element={<AdminNoticias />} />
+          <Route path="parchate" element={<AdminParchate />} />
+          <Route path="oportunidades" element={<AdminOportunidades />} />
+          <Route path="suscripciones" element={<AdminSuscripciones />} />
+          <Route path="banner" element={<AdminBanner />} />
         </Route>
 
         {/* Rutas de Aliado */}
@@ -89,7 +100,7 @@ const PublicLayout = () => {
           <Route path="perfil" element={<AliadoPerfil />} />
           <Route path="donaciones" element={<AliadoDonaciones />} />
           <Route path="proyectos" element={<AliadoProyectos />} />
-          <Route path="proyectos/:id" element={<AliadoProyectoDetalle />} /> {/* ← NUEVO */}
+          <Route path="proyectos/:id" element={<AliadoProyectoDetalle />} />
           <Route path="donar" element={<AliadoDonar />} />
         </Route>
 
