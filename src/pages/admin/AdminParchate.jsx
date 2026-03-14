@@ -34,11 +34,8 @@ const AdminParchate = () => {
     try {
       const res = await api.get('/parchate?page=0&size=100');
       setItems(res.data.content || []);
-    } catch {
-      toast.error('Error cargando actividades');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Error cargando actividades'); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -52,14 +49,14 @@ const AdminParchate = () => {
     setEditing(p);
     setForm({
       titulo:      p.titulo,
-      descripcion: p.descripcion  || '',
-      imagenUrl:   p.imagenUrl    || '',
-      tipo:        p.tipo         || '',
-      ubicacion:   p.ubicacion    || '',
-      direccion:   p.direccion    || '',
-      urlMapa:     p.urlMapa      || '',
-      fechaEvento: p.fechaEvento  ? p.fechaEvento.substring(0, 16) : '',
-      activo:      p.activo       ?? true,
+      descripcion: p.descripcion || '',
+      imagenUrl:   p.imagenUrl   || '',
+      tipo:        p.tipo        || '',
+      ubicacion:   p.ubicacion   || '',
+      direccion:   p.direccion   || '',
+      urlMapa:     p.urlMapa     || '',
+      fechaEvento: p.fechaEvento ? p.fechaEvento.substring(0, 16) : '',
+      activo:      p.activo      ?? true,
     });
     setDialogOpen(true);
   };
@@ -79,10 +76,11 @@ const AdminParchate = () => {
       direccion:   form.direccion   || null,
       urlMapa:     form.urlMapa     || null,
       fechaEvento: form.fechaEvento || null,
+      activo:      form.activo,
     };
     try {
       if (editing) {
-        await api.put(`/parchate/${editing.id}`, { ...payload, activo: form.activo });
+        await api.put(`/parchate/${editing.id}`, payload);
         toast.success('Actividad actualizada');
       } else {
         await api.post('/parchate', payload);
@@ -92,9 +90,7 @@ const AdminParchate = () => {
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error guardando actividad');
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
@@ -135,7 +131,7 @@ const AdminParchate = () => {
                 <TableHead>Tipo</TableHead>
                 <TableHead>Ubicación</TableHead>
                 <TableHead>Fecha evento</TableHead>
-                <TableHead>Estado</TableHead>
+                <TableHead>Visible</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -150,8 +146,8 @@ const AdminParchate = () => {
                   <TableCell>{p.fechaEvento ? p.fechaEvento.substring(0, 10) : '—'}</TableCell>
                   <TableCell>
                     {p.activo
-                      ? <Badge className="bg-primary/15 text-primary border-0">Activa</Badge>
-                      : <Badge className="bg-muted text-muted-foreground border-0">Inactiva</Badge>}
+                      ? <Badge className="bg-primary/15 text-primary border-0">Visible</Badge>
+                      : <Badge className="bg-muted text-muted-foreground border-0">Oculta</Badge>}
                   </TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="w-4 h-4" /></Button>
@@ -168,30 +164,34 @@ const AdminParchate = () => {
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-heading">{editing ? 'Editar Actividad' : 'Nueva Actividad'}</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-4">
-            <div><Label>Título *</Label><Input value={form.titulo} onChange={e => setForm({ ...form, titulo: e.target.value })} placeholder="Ej: Taller de emprendimiento..." /></div>
-            <div><Label>Descripción *</Label><Textarea value={form.descripcion} onChange={e => setForm({ ...form, descripcion: e.target.value })} rows={3} /></div>
+            <div><Label>Título *</Label><Input value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} placeholder="Ej: Taller de emprendimiento..." /></div>
+            <div><Label>Descripción *</Label><Textarea value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} rows={3} /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div><Label>Tipo *</Label><Input value={form.tipo} onChange={e => setForm({ ...form, tipo: e.target.value })} placeholder="Ej: Taller, Evento, Charla..." /></div>
-              <div><Label>Ubicación *</Label><Input value={form.ubicacion} onChange={e => setForm({ ...form, ubicacion: e.target.value })} placeholder="Ej: Medellín, Bogotá..." /></div>
+              <div><Label>Tipo *</Label><Input value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value})} placeholder="Ej: Taller, Evento, Charla..." /></div>
+              <div><Label>Ubicación *</Label><Input value={form.ubicacion} onChange={e => setForm({...form, ubicacion: e.target.value})} placeholder="Ej: Medellín, Bogotá..." /></div>
             </div>
-            <div><Label>Dirección</Label><Input value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="Dirección exacta del evento" /></div>
+            <div><Label>Dirección</Label><Input value={form.direccion} onChange={e => setForm({...form, direccion: e.target.value})} placeholder="Dirección exacta del evento" /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div><Label>URL del mapa</Label><Input value={form.urlMapa} onChange={e => setForm({ ...form, urlMapa: e.target.value })} placeholder="https://maps.google.com/..." /></div>
-              <div><Label>Fecha y hora del evento</Label><Input type="datetime-local" value={form.fechaEvento} onChange={e => setForm({ ...form, fechaEvento: e.target.value })} /></div>
+              <div><Label>URL del mapa</Label><Input value={form.urlMapa} onChange={e => setForm({...form, urlMapa: e.target.value})} placeholder="https://maps.google.com/..." /></div>
+              <div><Label>Fecha y hora del evento</Label><Input type="datetime-local" value={form.fechaEvento} onChange={e => setForm({...form, fechaEvento: e.target.value})} /></div>
             </div>
             <CloudinaryUpload
               value={form.imagenUrl}
-              onChange={url => setForm({ ...form, imagenUrl: url })}
+              onChange={url => setForm({...form, imagenUrl: url})}
               label="Imagen principal"
               folder="fundacion/parchate"
               disabled={saving}
             />
-            {editing && (
-              <div className="flex items-center gap-3">
-                <Switch checked={form.activo} onCheckedChange={v => setForm({ ...form, activo: v })} />
-                <Label>Actividad activa</Label>
+            {/* Visible tanto al crear como al editar */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div>
+                <p className="text-sm font-medium font-body">Visible en el sitio</p>
+                <p className="text-xs text-muted-foreground font-body">
+                  {form.activo ? 'La actividad aparecerá en Párchate' : 'La actividad estará oculta al público'}
+                </p>
               </div>
-            )}
+              <Switch checked={form.activo} onCheckedChange={v => setForm({...form, activo: v})} />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>

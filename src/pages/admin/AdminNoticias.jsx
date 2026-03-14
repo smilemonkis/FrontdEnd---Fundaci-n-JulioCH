@@ -10,13 +10,13 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Loader2, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import CloudinaryUpload from '@/components/ui/CloudinaryUpload';
 
 const emptyForm = {
   titulo: '', resumen: '', contenido: '', imagenUrl: '',
-  autor: '', publicado: false, fechaPublicacion: '',
+  autor: '', publicado: false,
 };
 
 const AdminNoticias = () => {
@@ -34,11 +34,8 @@ const AdminNoticias = () => {
     try {
       const res = await api.get('/noticias?page=0&size=100');
       setItems(res.data.content || []);
-    } catch {
-      toast.error('Error cargando noticias');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Error cargando noticias'); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -51,31 +48,30 @@ const AdminNoticias = () => {
   const openEdit   = (n) => {
     setEditing(n);
     setForm({
-      titulo:           n.titulo,
-      resumen:          n.resumen          || '',
-      contenido:        n.contenido        || '',
-      imagenUrl:        n.imagenUrl        || '',
-      autor:            n.autor            || '',
-      publicado:        n.publicado        ?? false,
-      fechaPublicacion: n.fechaPublicacion || '',
+      titulo:    n.titulo,
+      resumen:   n.resumen   || '',
+      contenido: n.contenido || '',
+      imagenUrl: n.imagenUrl || '',
+      autor:     n.autor     || '',
+      publicado: n.publicado ?? false,
     });
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
-    if (!form.titulo || !form.resumen || !form.contenido || !form.autor || !form.fechaPublicacion) {
+    if (!form.titulo || !form.resumen || !form.contenido || !form.autor) {
       toast.error('Completa los campos obligatorios');
       return;
     }
     setSaving(true);
     const payload = {
-      titulo:           form.titulo,
-      resumen:          form.resumen,
-      contenido:        form.contenido,
-      imagenUrl:        form.imagenUrl || null,
-      autor:            form.autor,
-      publicado:        form.publicado,
-      fechaPublicacion: form.fechaPublicacion,
+      titulo:    form.titulo,
+      resumen:   form.resumen,
+      contenido: form.contenido,
+      imagenUrl: form.imagenUrl || null,
+      autor:     form.autor,
+      publicado: form.publicado,
+      // No enviamos fechaPublicacion — el backend la asigna automáticamente al publicar
     };
     try {
       if (editing) {
@@ -83,15 +79,13 @@ const AdminNoticias = () => {
         toast.success('Noticia actualizada');
       } else {
         await api.post('/noticias', payload);
-        toast.success('Noticia creada');
+        toast.success(form.publicado ? 'Noticia publicada' : 'Borrador guardado');
       }
       setDialogOpen(false);
       fetchData();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Error guardando noticia');
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error guardando noticia');
+    } finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
@@ -101,9 +95,7 @@ const AdminNoticias = () => {
       toast.success('Noticia eliminada');
       setDeleteId(null);
       fetchData();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Error eliminando noticia');
-    }
+    } catch (err) { toast.error(err.response?.data?.message || 'Error eliminando noticia'); }
   };
 
   return (
@@ -130,7 +122,7 @@ const AdminNoticias = () => {
               <TableRow>
                 <TableHead>Título</TableHead>
                 <TableHead>Autor</TableHead>
-                <TableHead>Fecha</TableHead>
+                <TableHead>Publicada</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
@@ -142,7 +134,13 @@ const AdminNoticias = () => {
                 <TableRow key={n.id}>
                   <TableCell className="font-medium max-w-[280px] truncate">{n.titulo}</TableCell>
                   <TableCell>{n.autor}</TableCell>
-                  <TableCell>{n.fechaPublicacion}</TableCell>
+                  <TableCell>
+                    {n.fechaPublicacion ? (
+                      <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Calendar className="w-3.5 h-3.5" /> {n.fechaPublicacion}
+                      </span>
+                    ) : '—'}
+                  </TableCell>
                   <TableCell>
                     {n.publicado
                       ? <Badge className="bg-primary/15 text-primary border-0">Publicada</Badge>
@@ -165,35 +163,43 @@ const AdminNoticias = () => {
             <DialogTitle className="font-heading">{editing ? 'Editar Noticia' : 'Nueva Noticia'}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-
-            <div><Label>Título *</Label><Input value={form.titulo} onChange={e => setForm({ ...form, titulo: e.target.value })} placeholder="Ej: La fundación lanza nuevo programa..." /></div>
-            <div><Label>Resumen *</Label><Textarea value={form.resumen} onChange={e => setForm({ ...form, resumen: e.target.value })} rows={2} placeholder="Breve descripción para listados..." /></div>
-            <div><Label>Contenido *</Label><Textarea value={form.contenido} onChange={e => setForm({ ...form, contenido: e.target.value })} rows={6} placeholder="Contenido completo de la noticia..." /></div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div><Label>Autor *</Label><Input value={form.autor} onChange={e => setForm({ ...form, autor: e.target.value })} placeholder="Nombre del autor" /></div>
-              <div><Label>Fecha de publicación *</Label><Input type="date" value={form.fechaPublicacion} onChange={e => setForm({ ...form, fechaPublicacion: e.target.value })} /></div>
-            </div>
+            <div><Label>Título *</Label><Input value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} placeholder="Ej: La fundación lanza nuevo programa..." /></div>
+            <div><Label>Resumen *</Label><Textarea value={form.resumen} onChange={e => setForm({...form, resumen: e.target.value})} rows={2} placeholder="Breve descripción para listados..." /></div>
+            <div><Label>Contenido *</Label><Textarea value={form.contenido} onChange={e => setForm({...form, contenido: e.target.value})} rows={6} placeholder="Contenido completo de la noticia..." /></div>
+            <div><Label>Autor *</Label><Input value={form.autor} onChange={e => setForm({...form, autor: e.target.value})} placeholder="Nombre del autor" /></div>
 
             <CloudinaryUpload
               value={form.imagenUrl}
-              onChange={url => setForm({ ...form, imagenUrl: url })}
+              onChange={url => setForm({...form, imagenUrl: url})}
               label="Imagen principal"
               folder="fundacion/noticias"
               disabled={saving}
             />
 
-            <div className="flex items-center gap-3">
-              <Switch checked={form.publicado} onCheckedChange={v => setForm({ ...form, publicado: v })} />
-              <Label>Publicar noticia</Label>
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div>
+                <p className="text-sm font-medium font-body">Publicar noticia</p>
+                <p className="text-xs text-muted-foreground font-body">
+                  {form.publicado
+                    ? 'Se publicará hoy y será visible en el sitio'
+                    : 'Se guardará como borrador, no visible al público'}
+                </p>
+              </div>
+              <Switch checked={form.publicado} onCheckedChange={v => setForm({...form, publicado: v})} />
             </div>
 
+            {editing && editing.fechaPublicacion && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5" />
+                Publicada originalmente el {editing.fechaPublicacion}
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editing ? 'Guardar' : 'Crear'}
+              {editing ? 'Guardar' : form.publicado ? 'Publicar' : 'Guardar borrador'}
             </Button>
           </DialogFooter>
         </DialogContent>

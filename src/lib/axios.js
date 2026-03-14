@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  // ✅ URL relativa: aprovecha el proxy de Vite en desarrollo
+  //  URL relativa: aprovecha el proxy de Vite en desarrollo
   // En producción apuntará donde esté desplegado el backend
   baseURL: '/api/v1',
   headers: {
