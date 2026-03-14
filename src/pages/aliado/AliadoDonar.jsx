@@ -49,7 +49,7 @@ const AliadoDonar = () => {
 
     setSubmitting(true);
 
-    // ✅ Payload plano que coincide con CreateDonacionRequest
+    // Payload plano que coincide con CreateDonacionRequest
     const payload = {
       usuarioId:  user.id,
       monto:      montoFinal,
@@ -58,7 +58,7 @@ const AliadoDonar = () => {
     };
 
     try {
-      await api.post('/donaciones', payload);
+      await api.post('/donaciones/aliado', payload);
       setSuccess(true);
       toast({ title: '¡Gracias por tu aporte!', description: 'Donación registrada con éxito.' });
     } catch (error) {
