@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -21,7 +22,11 @@ const ESTADOS = [
   { value: 'CERRADO',      label: 'Cerrado',      color: 'bg-muted text-muted-foreground border-0' },
 ];
 
-const emptyForm = { titulo: '', descripcion: '', imagenUrl: '', fechaInicio: '', fechaFin: '', estado: 'ABIERTO', activa: true };
+const emptyForm = {
+  titulo: '', descripcion: '', imagenUrl: '', fechaInicio: '', fechaFin: '',
+  estado: 'ABIERTO', activa: true,
+  enlace: '', textoBoton: 'Inscribirme', mostrarBoton: true,
+};
 
 const AdminConvocatorias = () => {
   const [items, setItems]           = useState([]);
@@ -54,13 +59,16 @@ const AdminConvocatorias = () => {
     setEditing(c);
     setFechaError('');
     setForm({
-      titulo:      c.titulo,
-      descripcion: c.descripcion || '',
-      imagenUrl:   c.imagenUrl   || '',
-      fechaInicio: c.fechaInicio || '',
-      fechaFin:    c.fechaFin    || '',
-      estado:      c.estado      || 'ABIERTO',
-      activa:      c.activa,
+      titulo:       c.titulo,
+      descripcion:  c.descripcion  || '',
+      imagenUrl:    c.imagenUrl    || '',
+      fechaInicio:  c.fechaInicio  || '',
+      fechaFin:     c.fechaFin     || '',
+      estado:       c.estado       || 'ABIERTO',
+      activa:       c.activa,
+      enlace:       c.enlace       || '',
+      textoBoton:   c.textoBoton   || 'Inscribirme',
+      mostrarBoton: c.mostrarBoton ?? true,
     });
     setDialogOpen(true);
   };
@@ -79,37 +87,29 @@ const AdminConvocatorias = () => {
     if (!validarFechas()) return;
     setSaving(true);
     const payload = {
-      titulo:      form.titulo,
-      descripcion: form.descripcion,
-      imagenUrl:   form.imagenUrl   || null,
-      fechaInicio: form.fechaInicio || null,
-      fechaFin:    form.fechaFin    || null,
-      estado:      form.estado,
-      activa:      form.activa,
+      titulo:       form.titulo,
+      descripcion:  form.descripcion,
+      imagenUrl:    form.imagenUrl    || null,
+      fechaInicio:  form.fechaInicio  || null,
+      fechaFin:     form.fechaFin     || null,
+      estado:       form.estado,
+      activa:       form.activa,
+      enlace:       form.enlace       || null,
+      textoBoton:   form.textoBoton   || 'Inscribirme',
+      mostrarBoton: form.mostrarBoton,
     };
     try {
-      if (editing) {
-        await api.put(`/convocatorias/${editing.id}`, payload);
-        toast.success('Convocatoria actualizada');
-      } else {
-        await api.post('/convocatorias', payload);
-        toast.success('Convocatoria creada');
-      }
-      setDialogOpen(false);
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Error guardando convocatoria');
-    } finally { setSaving(false); }
+      if (editing) { await api.put(`/convocatorias/${editing.id}`, payload); toast.success('Convocatoria actualizada'); }
+      else         { await api.post('/convocatorias', payload);              toast.success('Convocatoria creada'); }
+      setDialogOpen(false); fetchData();
+    } catch (err) { toast.error(err.response?.data?.message || 'Error guardando convocatoria'); }
+    finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    try {
-      await api.delete(`/convocatorias/${deleteId}`);
-      toast.success('Convocatoria eliminada');
-      setDeleteId(null);
-      fetchData();
-    } catch (err) { toast.error(err.response?.data?.message || 'Error eliminando'); }
+    try { await api.delete(`/convocatorias/${deleteId}`); toast.success('Convocatoria eliminada'); setDeleteId(null); fetchData(); }
+    catch (err) { toast.error(err.response?.data?.message || 'Error eliminando'); }
   };
 
   const estadoInfo = (estado) => ESTADOS.find(e => e.value === estado) || ESTADOS[1];
@@ -140,18 +140,24 @@ const AdminConvocatorias = () => {
                 <TableHead>Inicio</TableHead>
                 <TableHead>Fin</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead>Botón</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No hay convocatorias</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No hay convocatorias</TableCell></TableRow>
               ) : filtered.map(c => (
                 <TableRow key={c.id}>
-                  <TableCell className="font-medium max-w-[300px] truncate">{c.titulo}</TableCell>
+                  <TableCell className="font-medium max-w-[260px] truncate">{c.titulo}</TableCell>
                   <TableCell>{c.fechaInicio || '—'}</TableCell>
                   <TableCell>{c.fechaFin || '—'}</TableCell>
                   <TableCell><Badge className={estadoInfo(c.estado).color}>{estadoInfo(c.estado).label}</Badge></TableCell>
+                  <TableCell>
+                    {c.mostrarBoton
+                      ? <Badge className="bg-primary/15 text-primary border-0">{c.textoBoton || 'Inscribirme'}</Badge>
+                      : <Badge className="bg-muted text-muted-foreground border-0">Oculto</Badge>}
+                  </TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(c)}><Pencil className="w-4 h-4" /></Button>
                     <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
@@ -170,34 +176,56 @@ const AdminConvocatorias = () => {
             <div><Label>Título *</Label><Input value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} /></div>
             <div><Label>Descripción *</Label><Textarea value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} rows={3} /></div>
 
-            {/* Estado manual */}
             <div>
               <Label>Estado</Label>
               <Select value={form.estado} onValueChange={v => setForm({...form, estado: v})}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {ESTADOS.map(e => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}
-                </SelectContent>
+                <SelectContent>{ESTADOS.map(e => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
 
-            {/* Fechas opcionales */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Fecha inicio <span className="text-muted-foreground text-xs">(opcional)</span></Label>
-                <Input type="date" value={form.fechaInicio}
-                  onChange={e => { setForm({...form, fechaInicio: e.target.value}); setFechaError(''); }} />
+                <Input type="date" value={form.fechaInicio} onChange={e => { setForm({...form, fechaInicio: e.target.value}); setFechaError(''); }} />
               </div>
               <div>
                 <Label>Fecha fin <span className="text-muted-foreground text-xs">(opcional)</span></Label>
-                <Input type="date" value={form.fechaFin}
-                  min={form.fechaInicio || undefined}
-                  onChange={e => { setForm({...form, fechaFin: e.target.value}); setFechaError(''); }} />
+                <Input type="date" value={form.fechaFin} min={form.fechaInicio || undefined} onChange={e => { setForm({...form, fechaFin: e.target.value}); setFechaError(''); }} />
               </div>
             </div>
             {fechaError && <p className="text-xs text-destructive">{fechaError}</p>}
 
             <CloudinaryUpload value={form.imagenUrl} onChange={url => setForm({...form, imagenUrl: url})} label="Imagen" folder="fundacion/convocatorias" disabled={saving} />
+
+            <Separator />
+
+            {/* ── Botón de inscripción ── */}
+            <div>
+              <p className="text-sm font-medium font-body mb-3">Botón de inscripción</p>
+              <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium font-body">Mostrar botón</p>
+                    <p className="text-xs text-muted-foreground">{form.mostrarBoton ? 'El botón aparece en el detalle' : 'El botón está oculto'}</p>
+                  </div>
+                  <Switch checked={form.mostrarBoton} onCheckedChange={v => setForm({...form, mostrarBoton: v})} />
+                </div>
+                {form.mostrarBoton && (
+                  <>
+                    <div>
+                      <Label>Texto del botón</Label>
+                      <Input value={form.textoBoton} onChange={e => setForm({...form, textoBoton: e.target.value})} placeholder="Inscribirme" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label>Enlace <span className="text-muted-foreground text-xs">(opcional)</span></Label>
+                      <Input value={form.enlace} onChange={e => setForm({...form, enlace: e.target.value})} placeholder="https://forms.google.com/..." className="mt-1" />
+                      <p className="text-xs text-muted-foreground mt-1">Si no hay enlace el botón no aparece aunque esté activo</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
 
             {editing && (
               <div className="flex items-center gap-3">

@@ -23,17 +23,24 @@ const ESTADOS = [
 
 const emptyForm = { codigo: '', nombre: '', descripcion: '', imagenUrl: '', fechaInicio: '', fechaFin: '', estado: 'ABIERTO', progreso: 0, beneficiarios: '', presupuesto: '' };
 
+// Formatea número con puntos colombianos: 50000000 → 50.000.000
+const formatearPresupuesto = (val) => {
+  const soloNum = val.replace(/\D/g, '');
+  if (!soloNum) return '';
+  return Number(soloNum).toLocaleString('es-CO');
+};
+
 const AdminProyectos = () => {
-  const [proyectos, setProyectos]     = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [search, setSearch]           = useState('');
+  const [proyectos, setProyectos]       = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [search, setSearch]             = useState('');
   const [filtroEstado, setFiltroEstado] = useState('todos');
-  const [dialogOpen, setDialogOpen]   = useState(false);
-  const [deleteId, setDeleteId]       = useState(null);
-  const [editing, setEditing]         = useState(null);
-  const [form, setForm]               = useState(emptyForm);
-  const [formErrors, setFormErrors]   = useState({});
-  const [saving, setSaving]           = useState(false);
+  const [dialogOpen, setDialogOpen]     = useState(false);
+  const [deleteId, setDeleteId]         = useState(null);
+  const [editing, setEditing]           = useState(null);
+  const [form, setForm]                 = useState(emptyForm);
+  const [formErrors, setFormErrors]     = useState({});
+  const [saving, setSaving]             = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -161,7 +168,9 @@ const AdminProyectos = () => {
                 <TableRow key={p.id}>
                   <TableCell className="font-mono text-sm">{p.codigo}</TableCell>
                   <TableCell className="font-medium">{p.nombre}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{p.presupuesto || '—'}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {p.presupuesto ? `$${p.presupuesto}` : '—'}
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2 min-w-[80px]">
                       <div className="flex-1 bg-muted rounded-full h-1.5">
@@ -192,7 +201,6 @@ const AdminProyectos = () => {
             </div>
             <div><Label>Descripción</Label><Textarea value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} rows={3} /></div>
 
-            {/* Estado manual */}
             <div>
               <Label>Estado</Label>
               <Select value={form.estado} onValueChange={v => setForm({...form, estado: v})}>
@@ -201,7 +209,6 @@ const AdminProyectos = () => {
               </Select>
             </div>
 
-            {/* Fechas opcionales */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Fecha inicio <span className="text-muted-foreground text-xs">(opcional)</span></Label>
@@ -221,17 +228,39 @@ const AdminProyectos = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Progreso (%)</Label>
-                <Input type="number" min={0} max={100} value={form.progreso} onChange={e => setForm({...form, progreso: Math.min(100, Math.max(0, Number(e.target.value)))})} />
+                <Input type="number" min={0} max={100} value={form.progreso}
+                  onChange={e => setForm({...form, progreso: Math.min(100, Math.max(0, Number(e.target.value)))})} />
                 <div className="w-full bg-muted rounded-full h-1.5 mt-2">
                   <div className="bg-primary h-1.5 rounded-full transition-all" style={{width:`${form.progreso}%`}} />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">{form.progreso}% completado</p>
               </div>
-              <div><Label>Beneficiarios</Label><Input type="number" min={0} value={form.beneficiarios} onChange={e => setForm({...form, beneficiarios: e.target.value})} placeholder="Ej: 1200" /></div>
+              <div>
+                <Label>Beneficiarios</Label>
+                <Input type="number" min={0} value={form.beneficiarios}
+                  onChange={e => setForm({...form, beneficiarios: e.target.value})} placeholder="Ej: 1200" />
+              </div>
             </div>
-            <div><Label>Presupuesto</Label><Input value={form.presupuesto} onChange={e => setForm({...form, presupuesto: e.target.value})} placeholder="Ej: $50.000.000" /><p className="text-xs text-muted-foreground mt-1">Texto libre</p></div>
+
+            {/* ── Presupuesto — solo números con formato colombiano ── */}
+            <div>
+              <Label>Presupuesto</Label>
+              <div className="relative mt-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">$</span>
+                <Input
+                  value={form.presupuesto}
+                  onChange={e => setForm({...form, presupuesto: formatearPresupuesto(e.target.value)})}
+                  placeholder="50.000.000"
+                  className="pl-7"
+                  inputMode="numeric"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Solo números* </p>
+            </div>
+
             <Separator />
-            <CloudinaryUpload value={form.imagenUrl} onChange={url => setForm({...form, imagenUrl: url})} label="Imagen del proyecto" folder="fundacion/proyectos" disabled={saving} />
+            <CloudinaryUpload value={form.imagenUrl} onChange={url => setForm({...form, imagenUrl: url})}
+              label="Imagen del proyecto" folder="fundacion/proyectos" disabled={saving} />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -16,7 +17,9 @@ import CloudinaryUpload from '@/components/ui/CloudinaryUpload';
 
 const emptyForm = {
   titulo: '', descripcion: '', imagenUrl: '', tipo: '',
-  ubicacion: '', direccion: '', urlMapa: '', fechaEvento: '', activo: true,
+  ubicacion: '', direccion: '', urlMapa: '', enlace: '',
+  fechaEvento: '', activo: true,
+  textoBoton: 'Más información', mostrarBoton: false,
 };
 
 const AdminParchate = () => {
@@ -48,61 +51,53 @@ const AdminParchate = () => {
   const openEdit   = (p) => {
     setEditing(p);
     setForm({
-      titulo:      p.titulo,
-      descripcion: p.descripcion || '',
-      imagenUrl:   p.imagenUrl   || '',
-      tipo:        p.tipo        || '',
-      ubicacion:   p.ubicacion   || '',
-      direccion:   p.direccion   || '',
-      urlMapa:     p.urlMapa     || '',
-      fechaEvento: p.fechaEvento ? p.fechaEvento.substring(0, 16) : '',
-      activo:      p.activo      ?? true,
+      titulo:       p.titulo,
+      descripcion:  p.descripcion  || '',
+      imagenUrl:    p.imagenUrl    || '',
+      tipo:         p.tipo         || '',
+      ubicacion:    p.ubicacion    || '',
+      direccion:    p.direccion    || '',
+      urlMapa:      p.urlMapa      || '',
+      enlace:       p.enlace       || '',
+      fechaEvento:  p.fechaEvento  ? p.fechaEvento.substring(0, 16) : '',
+      activo:       p.activo       ?? true,
+      textoBoton:   p.textoBoton   || 'Más información',
+      mostrarBoton: p.mostrarBoton ?? false,
     });
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
     if (!form.titulo || !form.descripcion || !form.tipo || !form.ubicacion) {
-      toast.error('Completa los campos obligatorios');
-      return;
+      toast.error('Completa los campos obligatorios'); return;
     }
     setSaving(true);
     const payload = {
-      titulo:      form.titulo,
-      descripcion: form.descripcion,
-      imagenUrl:   form.imagenUrl   || null,
-      tipo:        form.tipo,
-      ubicacion:   form.ubicacion,
-      direccion:   form.direccion   || null,
-      urlMapa:     form.urlMapa     || null,
-      fechaEvento: form.fechaEvento || null,
-      activo:      form.activo,
+      titulo:       form.titulo,
+      descripcion:  form.descripcion,
+      imagenUrl:    form.imagenUrl    || null,
+      tipo:         form.tipo,
+      ubicacion:    form.ubicacion,
+      direccion:    form.direccion    || null,
+      urlMapa:      form.urlMapa      || null,
+      enlace:       form.enlace       || null,
+      fechaEvento:  form.fechaEvento  || null,
+      activo:       form.activo,
+      textoBoton:   form.textoBoton   || 'Más información',
+      mostrarBoton: form.mostrarBoton,
     };
     try {
-      if (editing) {
-        await api.put(`/parchate/${editing.id}`, payload);
-        toast.success('Actividad actualizada');
-      } else {
-        await api.post('/parchate', payload);
-        toast.success('Actividad creada');
-      }
-      setDialogOpen(false);
-      fetchData();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Error guardando actividad');
-    } finally { setSaving(false); }
+      if (editing) { await api.put(`/parchate/${editing.id}`, payload); toast.success('Actividad actualizada'); }
+      else         { await api.post('/parchate', payload);               toast.success('Actividad creada'); }
+      setDialogOpen(false); fetchData();
+    } catch (err) { toast.error(err.response?.data?.message || 'Error guardando actividad'); }
+    finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    try {
-      await api.delete(`/parchate/${deleteId}`);
-      toast.success('Actividad eliminada');
-      setDeleteId(null);
-      fetchData();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Error eliminando actividad');
-    }
+    try { await api.delete(`/parchate/${deleteId}`); toast.success('Actividad eliminada'); setDeleteId(null); fetchData(); }
+    catch (err) { toast.error(err.response?.data?.message || 'Error eliminando'); }
   };
 
   return (
@@ -131,19 +126,25 @@ const AdminParchate = () => {
                 <TableHead>Tipo</TableHead>
                 <TableHead>Ubicación</TableHead>
                 <TableHead>Fecha evento</TableHead>
+                <TableHead>Botón</TableHead>
                 <TableHead>Visible</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No hay actividades</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No hay actividades</TableCell></TableRow>
               ) : filtered.map(p => (
                 <TableRow key={p.id}>
-                  <TableCell className="font-medium max-w-[220px] truncate">{p.titulo}</TableCell>
+                  <TableCell className="font-medium max-w-[200px] truncate">{p.titulo}</TableCell>
                   <TableCell><Badge variant="outline">{p.tipo}</Badge></TableCell>
                   <TableCell>{p.ubicacion}</TableCell>
                   <TableCell>{p.fechaEvento ? p.fechaEvento.substring(0, 10) : '—'}</TableCell>
+                  <TableCell>
+                    {p.mostrarBoton
+                      ? <Badge className="bg-primary/15 text-primary border-0">{p.textoBoton}</Badge>
+                      : <Badge className="bg-muted text-muted-foreground border-0">Oculto</Badge>}
+                  </TableCell>
                   <TableCell>
                     {p.activo
                       ? <Badge className="bg-primary/15 text-primary border-0">Visible</Badge>
@@ -175,20 +176,41 @@ const AdminParchate = () => {
               <div><Label>URL del mapa</Label><Input value={form.urlMapa} onChange={e => setForm({...form, urlMapa: e.target.value})} placeholder="https://maps.google.com/..." /></div>
               <div><Label>Fecha y hora del evento</Label><Input type="datetime-local" value={form.fechaEvento} onChange={e => setForm({...form, fechaEvento: e.target.value})} /></div>
             </div>
-            <CloudinaryUpload
-              value={form.imagenUrl}
-              onChange={url => setForm({...form, imagenUrl: url})}
-              label="Imagen principal"
-              folder="fundacion/parchate"
-              disabled={saving}
-            />
-            {/* Visible tanto al crear como al editar */}
+            <CloudinaryUpload value={form.imagenUrl} onChange={url => setForm({...form, imagenUrl: url})} label="Imagen principal" folder="fundacion/parchate" disabled={saving} />
+
+            <Separator />
+
+            {/* ── Botón de acción ── */}
+            <div>
+              <p className="text-sm font-medium font-body mb-3">Botón de acción</p>
+              <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium font-body">Mostrar botón</p>
+                    <p className="text-xs text-muted-foreground">{form.mostrarBoton ? 'El botón aparece en la actividad' : 'El botón está oculto'}</p>
+                  </div>
+                  <Switch checked={form.mostrarBoton} onCheckedChange={v => setForm({...form, mostrarBoton: v})} />
+                </div>
+                {form.mostrarBoton && (
+                  <>
+                    <div>
+                      <Label>Texto del botón</Label>
+                      <Input value={form.textoBoton} onChange={e => setForm({...form, textoBoton: e.target.value})} placeholder="Más información" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label>Enlace <span className="text-muted-foreground text-xs">(opcional)</span></Label>
+                      <Input value={form.enlace} onChange={e => setForm({...form, enlace: e.target.value})} placeholder="https://..." className="mt-1" />
+                      <p className="text-xs text-muted-foreground mt-1">Si no hay enlace el botón no aparece aunque esté activo</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <div>
                 <p className="text-sm font-medium font-body">Visible en el sitio</p>
-                <p className="text-xs text-muted-foreground font-body">
-                  {form.activo ? 'La actividad aparecerá en Párchate' : 'La actividad estará oculta al público'}
-                </p>
+                <p className="text-xs text-muted-foreground">{form.activo ? 'La actividad aparecerá en Párchate' : 'La actividad estará oculta al público'}</p>
               </div>
               <Switch checked={form.activo} onCheckedChange={v => setForm({...form, activo: v})} />
             </div>
@@ -205,10 +227,7 @@ const AdminParchate = () => {
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar actividad?</AlertDialogTitle>
-            <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
-          </AlertDialogHeader>
+          <AlertDialogHeader><AlertDialogTitle>¿Eliminar actividad?</AlertDialogTitle><AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>

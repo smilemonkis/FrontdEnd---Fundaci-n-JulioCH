@@ -37,6 +37,9 @@ import AdminParchate from "../pages/admin/AdminParchate";
 import AdminOportunidades from "../pages/admin/AdminOportunidades";
 import AdminSuscripciones from "../pages/admin/AdminSuscripciones";
 import AdminBanner from "../pages/admin/AdminBanner";
+import AdminAliadosDestacados from "../pages/admin/AdminAliadosDestacados";
+import AdminContacto from "../pages/admin/AdminContacto";
+import AdminMetricas from "../pages/admin/AdminMetricas";
 
 import AliadoLayout from "../components/aliado/AliadoLayout";
 import AliadoHome from "../pages/aliado/AliadoHome";
@@ -61,6 +64,7 @@ const PublicLayout = () => {
     <>
       {!hideChrome && <Navbar />}
       <Routes>
+        {/* Rutas públicas */}
         <Route path="/" element={<Index />} />
         <Route path="/convocatorias" element={<Convocatorias />} />
         <Route path="/convocatorias/:id" element={<ConvocatoriaDetalle />} />
@@ -86,12 +90,14 @@ const PublicLayout = () => {
           <Route path="aliados" element={<AdminAliados />} />
           <Route path="donaciones" element={<AdminDonaciones />} />
           <Route path="perfil" element={<AdminPerfil />} />
-          {/* ── Módulos de contenido ── */}
           <Route path="noticias" element={<AdminNoticias />} />
           <Route path="parchate" element={<AdminParchate />} />
           <Route path="oportunidades" element={<AdminOportunidades />} />
           <Route path="suscripciones" element={<AdminSuscripciones />} />
           <Route path="banner" element={<AdminBanner />} />
+          <Route path="aliados-destacados" element={<AdminAliadosDestacados />} />
+          <Route path="contacto" element={<AdminContacto />} />
+          <Route path="metricas" element={<AdminMetricas />} />
         </Route>
 
         {/* Rutas de Aliado */}

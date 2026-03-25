@@ -1,27 +1,30 @@
 import { useLocation } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, Megaphone, Users, Heart, Home, User, Newspaper, MapPin, Briefcase, Mail, Image } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Megaphone, Users, Heart, Home, User, Newspaper, MapPin, Briefcase, Mail, Image, Star, MessageSquare, BarChart2 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import logoFundacion from '@/assets/logo-fundacion.png';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar } from '@/components/ui/sidebar';
 
 const menuItems = [
-  { title: 'Dashboard',      url: '/admin',               icon: LayoutDashboard },
-  { title: 'Proyectos',      url: '/admin/proyectos',     icon: FolderKanban },
-  { title: 'Convocatorias',  url: '/admin/convocatorias', icon: Megaphone },
-  { title: 'Aliados',        url: '/admin/aliados',       icon: Users },
-  { title: 'Donaciones',     url: '/admin/donaciones',    icon: Heart },
+  { title: 'Dashboard',     url: '/admin',               icon: LayoutDashboard },
+  { title: 'Proyectos',     url: '/admin/proyectos',     icon: FolderKanban },
+  { title: 'Convocatorias', url: '/admin/convocatorias', icon: Megaphone },
+  { title: 'Aliados',       url: '/admin/aliados',       icon: Users },
+  { title: 'Donaciones',    url: '/admin/donaciones',    icon: Heart },
+  { title: 'Mensajes',      url: '/admin/contacto',      icon: MessageSquare },
 ];
 
 const menuItemsContenido = [
-  { title: 'Banner',         url: '/admin/banner',        icon: Image },
-  { title: 'Noticias',       url: '/admin/noticias',      icon: Newspaper },
-  { title: 'Párchate',       url: '/admin/parchate',      icon: MapPin },
-  { title: 'Oportunidades',  url: '/admin/oportunidades', icon: Briefcase },
-  { title: 'Suscripciones',  url: '/admin/suscripciones', icon: Mail },
+  { title: 'Banner',        url: '/admin/banner',             icon: Image },
+  { title: 'Noticias',      url: '/admin/noticias',           icon: Newspaper },
+  { title: 'Párchate',      url: '/admin/parchate',           icon: MapPin },
+  { title: 'Oportunidades', url: '/admin/oportunidades',      icon: Briefcase },
+  { title: 'Suscripciones', url: '/admin/suscripciones',      icon: Mail },
+  { title: 'Aliados Home',  url: '/admin/aliados-destacados', icon: Star },
+  { title: 'Métricas',      url: '/admin/metricas',           icon: BarChart2 },
 ];
 
 const menuItemsPerfil = [
-  { title: 'Mi Perfil',      url: '/admin/perfil',        icon: User },
+  { title: 'Mi Perfil', url: '/admin/perfil', icon: User },
 ];
 
 const AdminSidebar = () => {

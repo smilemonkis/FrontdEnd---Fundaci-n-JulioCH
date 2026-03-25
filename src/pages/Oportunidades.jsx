@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Briefcase, Loader2, ExternalLink } from 'lucide-react';
+import { Calendar, Loader2 } from 'lucide-react';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
 
 const TIPOS = [
@@ -20,9 +20,9 @@ const TIPO_STYLES = {
 };
 
 const ESTADO_STYLES = {
-  ABIERTO:      { label: 'Abierta',       dot: 'bg-green-500',  text: 'text-green-700' },
-  PROXIMAMENTE: { label: 'Próximamente',  dot: 'bg-yellow-500', text: 'text-yellow-700' },
-  CERRADO:      { label: 'Cerrada',       dot: 'bg-red-500',    text: 'text-red-600' },
+  ABIERTO:      { label: 'Abierta',      dot: 'bg-green-500',  text: 'text-green-700' },
+  PROXIMAMENTE: { label: 'Próximamente', dot: 'bg-yellow-500', text: 'text-yellow-700' },
+  CERRADO:      { label: 'Cerrada',      dot: 'bg-red-500',    text: 'text-red-600' },
 };
 
 const formatFecha = (fecha) => {
@@ -33,12 +33,12 @@ const formatFecha = (fecha) => {
 };
 
 const Oportunidades = () => {
-  const [items, setItems]           = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [filtroTipo, setFiltroTipo] = useState('');
+  const [items, setItems]               = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [filtroTipo, setFiltroTipo]     = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
-  const [page, setPage]             = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage]                 = useState(0);
+  const [totalPages, setTotalPages]     = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,7 +48,6 @@ const Oportunidades = () => {
         if (filtroTipo) url += `&tipo=${filtroTipo}`;
         const res = await api.get(url);
         let data = res.data.content || [];
-        // Filtro de estado en frontend
         if (filtroEstado) data = data.filter(o => o.estado === filtroEstado);
         setItems(data);
         setTotalPages(res.data.totalPages || 1);
@@ -70,12 +69,11 @@ const Oportunidades = () => {
           <p className="font-body text-muted-foreground max-w-xl mx-auto">Cartelera de empleo regional del Suroeste Antioqueño.</p>
         </div>
 
-        {/* Filtro estado */}
         <div className="flex flex-wrap justify-center gap-2 mb-4">
           {[
-            { value: '',        label: 'Todas' },
-            { value: 'ABIERTO', label: 'Abiertas' },
-            { value: 'CERRADO', label: 'Cerradas' },
+            { value: '',             label: 'Todas' },
+            { value: 'ABIERTO',      label: 'Abiertas' },
+            { value: 'CERRADO',      label: 'Cerradas' },
             { value: 'PROXIMAMENTE', label: 'Próximamente' },
           ].map(e => (
             <button key={e.value} onClick={() => handleFiltroEstado(e.value)}
@@ -87,7 +85,6 @@ const Oportunidades = () => {
           ))}
         </div>
 
-        {/* Filtro tipo */}
         <div className="flex flex-wrap justify-center gap-2 mb-8">
           {TIPOS.map(t => (
             <button key={t.value} onClick={() => handleFiltroTipo(t.value)}
@@ -108,21 +105,18 @@ const Oportunidades = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {items.map(o => {
                 const estado = ESTADO_STYLES[o.estado] || ESTADO_STYLES.ABIERTO;
-                const tipo   = TIPO_STYLES[o.tipo]   || { label: o.tipo, color: 'bg-muted text-muted-foreground' };
-
+                const tipo   = TIPO_STYLES[o.tipo]     || { label: o.tipo, color: 'bg-muted text-muted-foreground' };
                 return (
                   <div key={o.id} className="bg-card rounded-xl overflow-hidden border border-border group flex flex-col shadow-sm hover:shadow-md transition-shadow">
-                    {/* Imagen */}
                     <div className="h-48 overflow-hidden bg-muted shrink-0">
                       {o.imagenUrl
                         ? <img src={o.imagenUrl} alt={o.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                         : <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">Sin imagen</div>
                       }
                     </div>
-
                     <div className="p-5 flex flex-col flex-1">
-                      {/* Badge estado + tipo */}
-                      <div className="flex items-center justify-between mb-3">
+                      {/* Badges — altura fija */}
+                      <div className="flex items-center justify-between mb-3 shrink-0">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${estado.text} bg-transparent`}>
                           <span className={`w-2 h-2 rounded-full ${estado.dot}`} />
                           {estado.label}
@@ -132,34 +126,27 @@ const Oportunidades = () => {
                         </span>
                       </div>
 
-                      {/* Título */}
-                      <h3 className="font-heading text-lg font-bold text-foreground mb-1 line-clamp-2">{o.titulo}</h3>
+                      {/* Título — siempre 2 líneas */}
+                      <h3 className="font-heading text-lg font-bold text-foreground mb-1 line-clamp-2 shrink-0" style={{minHeight:'3.5rem'}}>{o.titulo}</h3>
 
-                      {/* Descripción */}
-                      <p className="font-body text-sm text-muted-foreground mb-4 line-clamp-2 flex-1">{o.descripcion}</p>
+                      {/* Descripción — siempre 2 líneas */}
+                      <p className="font-body text-sm text-muted-foreground mb-4 line-clamp-2 shrink-0" style={{minHeight:'2.5rem'}}>{o.descripcion}</p>
 
-                      {/* Fecha cierre */}
-                      {o.fechaLimite && (
-                        <div className="flex items-center gap-1.5 text-xs font-body text-muted-foreground mb-4">
-                          <Calendar className="w-3.5 h-3.5 shrink-0" />
-                          Cierre: {formatFecha(o.fechaLimite)}
-                        </div>
-                      )}
-
-                      {/* Botones */}
-                      <div className="flex gap-2 mt-auto">
-                        <Link to={`/oportunidades/${o.id}`} className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full border-primary text-primary hover:bg-primary/5">
-                            Ver detalles
-                          </Button>
-                        </Link>
-                        {o.enlace && (
-                          <a href={o.enlace} target="_blank" rel="noopener noreferrer">
-                            <Button size="sm" className="gap-1.5">
-                              <ExternalLink className="w-3.5 h-3.5" /> Aplicar
-                            </Button>
-                          </a>
+                      {/* Fecha — espacio fijo */}
+                      <div className="h-5 mb-4 shrink-0">
+                        {o.fechaLimite && (
+                          <div className="flex items-center gap-1.5 text-xs font-body text-muted-foreground">
+                            <Calendar className="w-3.5 h-3.5 shrink-0" />
+                            Cierre: {formatFecha(o.fechaLimite)}
+                          </div>
                         )}
+                      </div>
+
+                      {/* Botón siempre al fondo */}
+                      <div className="mt-auto shrink-0">
+                        <Link to={`/oportunidades/${o.id}`}>
+                          <Button variant="outline-primary" size="sm" className="w-full">Ver detalles</Button>
+                        </Link>
                       </div>
                     </div>
                   </div>
