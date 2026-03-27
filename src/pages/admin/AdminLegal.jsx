@@ -99,35 +99,43 @@ const AdminLegal = () => {
       ) : (
         <div className="grid gap-3">
           {docs.map(d => (
-            <div key={d.id} className={`bg-card rounded-xl border flex items-center gap-4 p-4 transition-all ${d.activo ? 'border-border' : 'border-border/50 opacity-60'}`}>
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <FileText className="w-5 h-5 text-primary" />
+            <div key={d.id} className={`bg-card rounded-xl border p-4 transition-all ${d.activo ? 'border-border' : 'border-border/50 opacity-60'}`}>
+              {/* Fila superior: icono + info + tipo */}
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <FileText className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-heading font-semibold text-foreground truncate">{d.nombre}</p>
+                  <a href={d.url} target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-primary hover:underline flex items-center gap-1 mt-0.5 truncate max-w-xs">
+                    <ExternalLink className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{d.url}</span>
+                  </a>
+                </div>
+                <Badge className={tipoInfo(d.tipo).color}>{tipoInfo(d.tipo).label}</Badge>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-heading font-semibold text-foreground truncate">{d.nombre}</p>
-                <a href={d.url} target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-primary hover:underline flex items-center gap-1 mt-0.5 truncate">
-                  <ExternalLink className="w-3 h-3 shrink-0" /> {d.url}
-                </a>
+
+              {/* Fila inferior: estado + acciones */}
+              <div className="flex items-center justify-between gap-2 pl-12">
+                <Badge className={d.activo
+                  ? 'bg-primary/15 text-primary border-0'
+                  : 'bg-muted text-muted-foreground border-0'}>
+                  {d.activo ? 'Visible para aliados' : 'Oculto'}
+                </Badge>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs"
+                    onClick={() => handleToggle(d)}>
+                    {d.activo
+                      ? <><EyeOff className="w-3.5 h-3.5" /> Ocultar</>
+                      : <><Eye className="w-3.5 h-3.5" /> Mostrar</>}
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"
+                    onClick={() => setDeleteId(d.id)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
-              <Badge className={tipoInfo(d.tipo).color}>{tipoInfo(d.tipo).label}</Badge>
-              <Badge className={d.activo ? 'bg-primary/15 text-primary border-0' : 'bg-muted text-muted-foreground border-0'}>
-                {d.activo ? 'Visible' : 'Oculto'}
-              </Badge>
-
-              {/* Toggle visibilidad */}
-              <Button variant="outline" size="sm" className="gap-1.5 shrink-0 h-8"
-                onClick={() => handleToggle(d)}
-                title={d.activo ? 'Ocultar a aliados' : 'Mostrar a aliados'}>
-                {d.activo
-                  ? <><EyeOff className="w-3.5 h-3.5" /> Ocultar</>
-                  : <><Eye className="w-3.5 h-3.5" /> Mostrar</>}
-              </Button>
-
-              <Button variant="ghost" size="icon" onClick={() => setDeleteId(d.id)}
-                className="text-destructive hover:text-destructive shrink-0">
-                <Trash2 className="w-4 h-4" />
-              </Button>
             </div>
           ))}
         </div>

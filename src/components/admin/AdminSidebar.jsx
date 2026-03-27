@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, Megaphone, Users, Heart, Home, User, Newspaper, MapPin, Briefcase, Mail, Image, Star, MessageSquare, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Megaphone, Users, Heart, Home, User, Newspaper, MapPin, Briefcase, Mail, Image, Star, MessageSquare, BarChart2, Scale } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import logoFundacion from '@/assets/logo-fundacion.png';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar } from '@/components/ui/sidebar';
@@ -21,6 +21,7 @@ const menuItemsContenido = [
   { title: 'Suscripciones', url: '/admin/suscripciones',      icon: Mail },
   { title: 'Aliados Home',  url: '/admin/aliados-destacados', icon: Star },
   { title: 'Métricas',      url: '/admin/metricas',           icon: BarChart2 },
+  { title: 'Legal',         url: '/admin/legal',              icon: Scale },
 ];
 
 const menuItemsPerfil = [
@@ -37,12 +38,9 @@ const AdminSidebar = () => {
   const renderItems = (items) => items.map((item) => (
     <SidebarMenuItem key={item.title}>
       <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-        <NavLink
-          to={item.url}
-          end={item.url === '/admin'}
+        <NavLink to={item.url} end={item.url === '/admin'}
           className="hover:bg-sidebar-accent/50"
-          activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-        >
+          activeClassName="bg-sidebar-accent text-sidebar-primary font-medium">
           <item.icon className="h-4 w-4" />
           <span>{item.title}</span>
         </NavLink>
@@ -57,35 +55,24 @@ const AdminSidebar = () => {
           <img src={logoFundacion} alt="Fundación" className="h-12 w-auto shrink-0" />
         </a>
       </SidebarHeader>
-
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs uppercase tracking-wider text-sidebar-foreground/50">Gestión</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>{renderItems(menuItems)}</SidebarMenu>
-          </SidebarGroupContent>
+          <SidebarGroupContent><SidebarMenu>{renderItems(menuItems)}</SidebarMenu></SidebarGroupContent>
         </SidebarGroup>
-
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs uppercase tracking-wider text-sidebar-foreground/50">Contenido</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>{renderItems(menuItemsContenido)}</SidebarMenu>
-          </SidebarGroupContent>
+          <SidebarGroupContent><SidebarMenu>{renderItems(menuItemsContenido)}</SidebarMenu></SidebarGroupContent>
         </SidebarGroup>
-
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs uppercase tracking-wider text-sidebar-foreground/50">Cuenta</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>{renderItems(menuItemsPerfil)}</SidebarMenu>
-          </SidebarGroupContent>
+          <SidebarGroupContent><SidebarMenu>{renderItems(menuItemsPerfil)}</SidebarMenu></SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
       <SidebarFooter className="p-3 border-t border-sidebar-border">
         <SidebarMenuButton asChild tooltip="Volver al sitio">
           <a href="/" className="flex items-center gap-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground">
-            <Home className="h-4 w-4" />
-            <span>Volver al sitio</span>
+            <Home className="h-4 w-4" /><span>Volver al sitio</span>
           </a>
         </SidebarMenuButton>
       </SidebarFooter>

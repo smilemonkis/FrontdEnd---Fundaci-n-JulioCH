@@ -40,6 +40,7 @@ import AdminBanner from "../pages/admin/AdminBanner";
 import AdminAliadosDestacados from "../pages/admin/AdminAliadosDestacados";
 import AdminContacto from "../pages/admin/AdminContacto";
 import AdminMetricas from "../pages/admin/AdminMetricas";
+import AdminLegal from "../pages/admin/AdminLegal";
 
 import AliadoLayout from "../components/aliado/AliadoLayout";
 import AliadoHome from "../pages/aliado/AliadoHome";
@@ -48,6 +49,8 @@ import AliadoDonaciones from "../pages/aliado/AliadoDonaciones";
 import AliadoProyectos from "../pages/aliado/AliadoProyectos";
 import AliadoProyectoDetalle from "../pages/aliado/AliadoProyectoDetalle";
 import AliadoDonar from "../pages/aliado/AliadoDonar";
+import AliadoLegal from "../pages/aliado/AliadoLegal";
+
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
@@ -98,6 +101,7 @@ const PublicLayout = () => {
           <Route path="aliados-destacados" element={<AdminAliadosDestacados />} />
           <Route path="contacto" element={<AdminContacto />} />
           <Route path="metricas" element={<AdminMetricas />} />
+          <Route path="legal" element={<AdminLegal />} />
         </Route>
 
         {/* Rutas de Aliado */}
@@ -108,6 +112,7 @@ const PublicLayout = () => {
           <Route path="proyectos" element={<AliadoProyectos />} />
           <Route path="proyectos/:id" element={<AliadoProyectoDetalle />} />
           <Route path="donar" element={<AliadoDonar />} />
+          <Route path="legal" element={<AliadoLegal />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />
